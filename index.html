@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#d4a830">
+<title>Bellum Galliae</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const CONFIG = {
+  SUPABASE_URL: 'https://dbgohwmvkhnwpzunhfqf.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZ29od212a2hud3B6dW5oZnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNjk5MTcsImV4cCI6MjA5MTk0NTkxN30.iG7dvLLWRQEVOBcRLzy8Ld7WQWM6FBOCTtfbj5xrZqE',
+  VERSION: '0.1.0-alpha',
+};
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;font-family:'Segoe UI',system-ui,sans-serif;touch-action:manipulation;-webkit-user-select:none;user-select:none;color:#ccc}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(212,168,48,0.3);border-radius:2px}
+#loading{position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .6s}
+#loading.done{opacity:0;pointer-events:none}
+#loading h1{color:#d4a830;font-size:2em;letter-spacing:5px;margin-bottom:16px;text-shadow:0 0 30px rgba(212,168,48,0.4)}
+.pbar{width:220px;height:6px;background:#222;border-radius:3px;overflow:hidden}.pfill{height:100%;background:linear-gradient(90deg,#d4a830,#f0d060);width:0%;transition:width .2s;border-radius:3px}
+#load-sub{color:#555;font-size:.75em;margin-top:10px}
+.scr{display:none;width:100%;height:100%;flex-direction:column;position:absolute;top:0;left:0}
+.scr.on{display:flex}
+#s-login{background:linear-gradient(180deg,#0f1a2e 0%,#0a1628 50%,#0f3460 100%);align-items:center;justify-content:center;padding:0 32px;z-index:10}
+.logo{color:#d4a830;font-size:2.2em;font-weight:900;letter-spacing:5px;text-shadow:0 0 30px rgba(212,168,48,0.4)}
+.logo-sub{color:#556;font-size:.78em;margin:6px 0 18vh;letter-spacing:2px}
+.bt{display:block;width:100%;max-width:300px;padding:15px;border:2px solid;border-radius:12px;font-size:1em;font-weight:700;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;transition:all .12s;background:none;margin-bottom:12px}
+.bt:active{transform:scale(.96)}
+.bt-g{border-color:#d4a830;color:#d4a830}.bt-g:active{background:rgba(212,168,48,.2)}
+.bt-v{border-color:#4a9;color:#4a9}.bt-v:active{background:rgba(68,170,153,.15)}
+#login-msg{color:#777;font-size:.8em;margin-top:20px;text-align:center;min-height:24px;transition:color .3s}
+#login-msg.ok{color:#2ecc71}#login-msg.err{color:#e74c3c}
+.tb{background:rgba(0,0,0,.55);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(212,168,48,.2);flex-shrink:0}
+.tb .tt{color:#d4a830;font-weight:700;font-size:.95em}
+.tb .rs{display:flex;gap:6px;font-size:.65em;color:#aaa}
+.tb .rs span{background:rgba(255,255,255,.05);padding:2px 7px;border-radius:5px}
+.ct{flex:1;padding:10px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.cd{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:12px;margin-bottom:9px}
+.cd h3{color:#d4a830;font-size:.88em;margin-bottom:5px}.cd p{font-size:.78em;line-height:1.4;color:#999}
+.bg{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.bl{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .12s;position:relative}
+.bl:active{background:rgba(212,168,48,.12);border-color:rgba(212,168,48,.4);transform:scale(.97)}
+.bl .bi{font-size:1.8em;margin-bottom:3px}.bl .bn{color:#bbb;font-size:.72em}.bl .bv{color:#d4a830;font-size:.68em;margin-top:2px}
+.bl .bt-sm{color:#4a9;font-size:.6em;margin-top:3px}
+.nv{background:rgba(0,0,0,.7);padding:5px 0;display:flex;border-top:1px solid rgba(212,168,48,.2);flex-shrink:0}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;color:#444;font-size:.55em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .12s;border:none;background:none}
+.nb.on{color:#d4a830}.nb i{font-size:1.5em;font-style:normal}
+.mo-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.mo-bg.on{display:flex}
+.mo{background:#162030;border:1px solid rgba(212,168,48,.25);border-radius:14px;padding:18px;width:100%;max-width:340px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.mo h2{color:#d4a830;font-size:1em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.mo .mr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8em}
+.mo .ml{color:#888}.mo .mv{color:#eee;font-weight:600}
+.mo .mc{margin-top:8px;padding:8px;background:rgba(0,0,0,.3);border-radius:7px;font-size:.75em}
+.mo .mc .co{color:#e74c3c}.mo .mc .co.ok{color:#2ecc71}
+.mb{width:100%;margin-top:10px;padding:11px;border-radius:9px;font-weight:700;font-size:.9em;cursor:pointer;border:none;transition:all .12s}
+.mb:active{transform:scale(.97)}
+.mb-up{background:#d4a830;color:#0a0a1a}.mb-up:active{background:#b8922a}
+.mb-up[disabled]{opacity:.35;cursor:default;transform:none}
+.mb-cl{background:rgba(255,255,255,.07);color:#888}
+.ma{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#1a3010,#0d200a 50%,#253d12);border-radius:11px;position:relative;overflow:hidden}
+.mc2{position:absolute;width:40px;height:40px;border:1px solid rgba(255,255,255,.12);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1.2em;cursor:pointer;transition:all .12s}
+.mc2:active{transform:scale(1.2);border-color:#d4a830}.mc2.mine{border-color:#d4a830;background:rgba(212,168,48,.2);box-shadow:0 0 8px rgba(212,168,48,.25)}
+.cl-e{padding:7px 9px;border-radius:7px;margin-bottom:5px;font-size:.76em}
+.cl-w{background:rgba(46,204,113,.08);color:#2ecc71;border-left:3px solid #2ecc71}
+.cl-l{background:rgba(231,76,60,.08);color:#e74c3c;border-left:3px solid #e74c3c}
+.ch-m{padding:4px 0;font-size:.78em}.ch-s{color:#d4a830;font-weight:600}.ch-t{color:#bbb}
+.ch-in{display:flex;gap:6px;margin-top:8px}
+.ch-in input{flex:1;padding:8px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.3);color:#fff;font-size:.82em}
+.ch-in button{padding:8px 14px;border-radius:7px;background:#d4a830;color:#0a0a1a;border:none;font-weight:700;cursor:pointer}
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:8px 20px;border-radius:18px;font-size:.82em;font-weight:600;z-index:150;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}.toast.bad{background:#e74c3c}
+.tag{position:fixed;bottom:2px;right:6px;color:rgba(255,255,255,.12);font-size:.5em;z-index:50}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#d4a830;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pulse{animation:pulse 2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+</style>
+</head>
+<body>
+<div id="loading"><h1>BELLUM GALLIAE</h1><div class="pbar"><div class="pfill" id="pf"></div></div><div id="load-sub">Connexion...</div></div>
+<div id="game" style="width:100%;height:100%;position:relative">
+<div id="s-login" class="scr on"><div class="logo">BELLUM GALLIAE</div><div class="logo-sub">STRATEGIE MEDIEVALE</div><button class="bt bt-g" onclick="doLogin('anon')">MODE ANONYME</button><button class="bt bt-v" onclick="doLogin('email')">CONNEXION EMAIL</button><div id="login-msg">Alpha v0.1.0</div></div>
+<div id="s-fief" class="scr" style="background:linear-gradient(180deg,#0f1a2e,#0a1a30)"><div class="tb"><span class="tt">Mon Fief</span><div class="rs" id="hd-res"></div></div><div class="ct"><div class="cd" id="player-card"></div><div class="bg" id="bld-grid"></div></div><div class="nv" id="nv-fief"></div></div>
+<div id="s-carte" class="scr" style="background:linear-gradient(180deg,#0f1a2e,#0d2b0d)"><div class="tb"><span class="tt">Carte du Monde</span><div class="rs"><span id="hd-troops">Troupes: --</span></div></div><div class="ct"><div class="ma" id="map-area"></div><div class="cd" style="margin-top:9px" id="map-info"><h3>Explorez la carte</h3><p>Cliquez sur une case pour interagir</p></div></div><div class="nv" id="nv-carte"></div></div>
+<div id="s-combat" class="scr" style="background:linear-gradient(180deg,#1e0f0f,#2e1515)"><div class="tb"><span class="tt">Combat</span><div class="rs"><span id="hd-atk">Attaques: --</span></div></div><div class="ct"><div class="cd" id="army-card"></div><button class="bt bt-g" style="width:100%;max-width:100%;margin-bottom:10px" id="btn-raid" onclick="doRaid()">LANCER UN RAID</button><div class="cd"><h3>Historique</h3><div id="clog"></div></div></div><div class="nv" id="nv-combat"></div></div>
+<div id="s-social" class="scr" style="background:linear-gradient(180deg,#0f1a2e,#0f2030)"><div class="tb"><span class="tt">Social</span><div class="rs"><span id="hd-clan">Clan: --</span></div></div><div class="ct"><div class="cd" id="clan-card"></div><div class="cd"><h3>Chat Global</h3><div id="chat-list"></div><div class="ch-in"><input id="ch-inp" type="text" placeholder="Message..." maxlength="200"><button onclick="sendChat()">OK</button></div></div><div class="cd"><h3>Classement</h3><div id="leaderboard"></div></div></div><div class="nv" id="nv-social"></div></div>
+<div id="s-eco" class="scr" style="background:linear-gradient(180deg,#0f1a2e,#1e1e0f)"><div class="tb"><span class="tt">Economie</span><div class="rs"><span id="hd-deniers">Deniers: --</span></div></div><div class="ct"><div class="cd" id="prod-card"></div><div class="cd"><h3>Marche</h3><div id="market"></div></div><div class="cd"><h3>Boutique</h3><div id="shop"></div></div><div class="cd" id="chest-card"></div></div><div class="nv" id="nv-eco"></div></div>
+</div>
+<div class="mo-bg" id="mo-bg" onclick="closeMo()"><div class="mo" id="mo-ct" onclick="event.stopPropagation()"></div></div>
+<div class="toast" id="toast"></div><div class="tag" id="vtag"></div>
+<script>
+let sb=null,session=null,userId=null;const OFFLINE=CONFIG.SUPABASE_ANON_KEY==='__ANON_KEY_ICI__';if(!OFFLINE){sb=supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);}
+const G={pseudo:'Anonyme',niveau:1,xp:0,xp_max:500,or:1500,bois:800,pierre:600,food:500,deniers:0,troupes:50,troupes_max:100,attacks:3,maxAtk:5,region:'Gaule Lyonnaise',clan:null,buildings:[{id:'chateau',icon:'🏰',name:'Chateau',lv:1,desc:'Centre du fief.',cOr:500,cBo:300,cPi:200,prod:'',pv:0,timer:0},{id:'caserne',icon:'⚔️',name:'Caserne',lv:1,desc:'Recrute des troupes. +5/h.',cOr:300,cBo:200,cPi:100,prod:'troupes',pv:5,timer:0},{id:'ferme',icon:'🌾',name:'Ferme',lv:1,desc:'Nourriture. +100/h.',cOr:200,cBo:150,cPi:50,prod:'food',pv:100,timer:0},{id:'mine',icon:'⛏️',name:'Mine',lv:1,desc:'Pierre. +60/h.',cOr:250,cBo:100,cPi:0,prod:'pierre',pv:60,timer:0},{id:'scierie',icon:'🪓',name:'Scierie',lv:1,desc:'Bois. +80/h.',cOr:200,cBo:0,cPi:100,prod:'bois',pv:80,timer:0},{id:'tour',icon:'🗼',name:'Tour de garde',lv:1,desc:'Defense. +10%.',cOr:400,cBo:250,cPi:300,prod:'',pv:0,timer:0}],combatLog:[],chatMsgs:[],packBought:false,chestOpened:false,online:false};
+const pf=document.getElementById('pf'),ls=document.getElementById('load-sub');let lp=0;const lSteps=['Chargement...','Connexion serveur...','Preparation...','Pret!'];const lI=setInterval(()=>{lp+=Math.random()*20+8;if(lp>100)lp=100;pf.style.width=lp+'%';ls.textContent=lSteps[Math.min(Math.floor(lp/25),3)];if(lp>=100){clearInterval(lI);setTimeout(()=>document.getElementById('loading').classList.add('done'),300);}},160);
+document.getElementById('vtag').textContent='Bellum Galliae Alpha v'+CONFIG.VERSION+(OFFLINE?' [OFFLINE]':' [ONLINE]');
+const NAV=[{id:'fief',ic:'🏰',lb:'Fief'},{id:'carte',ic:'🗺️',lb:'Carte'},{id:'combat',ic:'⚔️',lb:'Combat'},{id:'social',ic:'👥',lb:'Social'},{id:'eco',ic:'💰',lb:'Boutique'}];
+function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById('s-'+id).classList.add('on');document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.s===id));render();}
+function mkNav(cid){const c=document.getElementById(cid);if(!c)return;c.innerHTML=NAV.map(n=>'<button class="nb" data-s="'+n.id+'" onclick="go(\''+n.id+'\')"><i>'+n.ic+'</i>'+n.lb+'</button>').join('');}
+['nv-fief','nv-carte','nv-combat','nv-social','nv-eco'].forEach(mkNav);
+async function callFn(name,body={}){if(OFFLINE||!session)return null;try{const r=await fetch(CONFIG.SUPABASE_URL+'/functions/v1/'+name,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':CONFIG.SUPABASE_ANON_KEY},body:JSON.stringify(body)});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||r.statusText);}return await r.json();}catch(e){console.warn('API '+name+' (fallback local):',e.message);return null;}}
+async function loadPlayerState(){if(OFFLINE)return;try{let{data,error}=await sb.from('profiles').select('*').eq('id',userId).single();if(!data||error){const np='Seigneur_'+Math.floor(Math.random()*9000+1000);const{data:created,error:ce}=await sb.from('profiles').upsert({id:userId,pseudo:np,niveau:1,xp:0,or_balance:1500,bois:800,pierre:600,nourriture:500,deniers:0,troupes:50,region:'Gaule Lyonnaise'}).select().single();if(created){data=created;toast('Nouveau profil cree!');}else{console.error('Err profil:',ce);G.online=true;G.pseudo=np;toast('Connecte (profil local)');return;}}if(data){G.pseudo=data.pseudo||'Anonyme';G.niveau=data.niveau||1;G.xp=data.xp||0;G.or=data.or_balance??G.or;G.bois=data.bois??G.bois;G.pierre=data.pierre??G.pierre;G.food=data.nourriture??G.food;G.deniers=data.deniers??0;G.troupes=data.troupes??G.troupes;G.region=data.region||G.region;G.clan=data.clan_id;G.online=true;toast('Donnees synchronisees!');}const{data:blds}=await sb.from('buildings').select('*').eq('player_id',userId);if(blds&&blds.length){blds.forEach(b=>{const l=G.buildings.find(lb=>lb.id===b.type);if(l)l.lv=b.niveau||l.lv;});}}catch(e){console.error('loadPlayerState:',e);G.online=true;toast('Connecte (mode leger)');}}
+async function doLogin(mode){const msg=document.getElementById('login-msg');msg.textContent='Connexion...';msg.className='';if(OFFLINE){setTimeout(()=>{msg.textContent='Mode demo (offline)';msg.className='ok';G.pseudo='Seigneur_'+Math.floor(Math.random()*9000+1000);setTimeout(()=>{go('fief');render();},500);},800);return;}try{let result;if(mode==='anon'){result=await sb.auth.signInAnonymously();}else{const email=prompt('Email:');if(!email){msg.textContent='Annule';return;}const pass=prompt('Mot de passe:');if(!pass){msg.textContent='Annule';return;}result=await sb.auth.signInWithPassword({email,password:pass});if(result.error&&result.error.message.includes('Invalid')){result=await sb.auth.signUp({email,password:pass});}}if(result.error)throw result.error;session=result.data.session;userId=result.data.user?.id;msg.textContent='Connecte!';msg.className='ok';await loadPlayerState();callFn('daily_login',{}).then(dl=>{if(dl){G.xp=dl.xp_total||G.xp;G.niveau=dl.niveau||G.niveau;if(dl.serie>1)toast('Serie: '+dl.serie+' jours!');render();}}).catch(()=>{});setTimeout(()=>{go('fief');},500);}catch(e){msg.textContent=e.message||'Erreur de connexion';msg.className='err';}}
+function render(){document.getElementById('hd-res').innerHTML='<span>Or:'+G.or+'</span><span>Bois:'+G.bois+'</span><span>Pierre:'+G.pierre+'</span>';document.getElementById('hd-troops').textContent='Troupes: '+G.troupes+'/'+G.troupes_max;document.getElementById('hd-atk').textContent='Attaques: '+G.attacks+'/'+G.maxAtk;document.getElementById('hd-clan').textContent='Clan: '+(G.clan||'Aucun');document.getElementById('hd-deniers').textContent='Deniers: '+G.deniers;renderPlayer();renderBuildings();renderMap();renderArmy();renderCombatLog();renderClan();renderChat();renderLeaderboard();renderProd();renderMarket();renderShop();renderChest();}
+function renderPlayer(){document.getElementById('player-card').innerHTML='<h3>'+G.pseudo+'</h3><p>Niveau '+G.niveau+' - '+G.region+'</p><p style="color:#d4a830;margin-top:3px">XP: '+G.xp+' / '+(G.niveau*500)+'</p>'+(G.online?'<p style="color:#2ecc71;font-size:.65em;margin-top:3px">En ligne</p>':'<p style="color:#e74c3c;font-size:.65em;margin-top:3px">Mode demo</p>');}
+function renderBuildings(){document.getElementById('bld-grid').innerHTML=G.buildings.map((b,i)=>{let sub='';if(b.timer>0)sub='<div class="bt-sm pulse">Amelioration '+b.timer+'s</div>';else if(b.prod)sub='<div class="bt-sm" style="color:#888">+'+b.pv*b.lv+'/h</div>';return'<div class="bl" onclick="showBld('+i+')"><div class="bi">'+b.icon+'</div><div class="bn">'+b.name+'</div><div class="bv">Niv. '+b.lv+'</div>'+sub+'</div>';}).join('');}
+function showBld(i){const b=G.buildings[i],m=1.5;const cO=Math.floor(b.cOr*Math.pow(m,b.lv-1)),cB=Math.floor(b.cBo*Math.pow(m,b.lv-1)),cP=Math.floor(b.cPi*Math.pow(m,b.lv-1));const ok=G.or>=cO&&G.bois>=cB&&G.pierre>=cP&&b.timer<=0;document.getElementById('mo-ct').innerHTML='<h2>'+b.icon+' '+b.name+'</h2><p style="color:#888;font-size:.78em;margin-bottom:10px">'+b.desc+'</p><div class="mr"><span class="ml">Niveau</span><span class="mv">'+b.lv+'</span></div>'+(b.prod?'<div class="mr"><span class="ml">Production</span><span class="mv">+'+(b.pv*b.lv)+'/h</span></div>':'')+'<div class="mr"><span class="ml">Prochain niv.</span><span class="mv">'+(b.lv+1)+'</span></div><div class="mc"><p style="color:#777;margin-bottom:4px">Cout:</p>'+(cO?'<span class="co '+(G.or>=cO?'ok':'')+'">Or:'+cO+' </span>':'')+(cB?'<span class="co '+(G.bois>=cB?'ok':'')+'">Bois:'+cB+' </span>':'')+(cP?'<span class="co '+(G.pierre>=cP?'ok':'')+'">Pierre:'+cP+'</span>':'')+'</div><button class="mb mb-up" '+(ok?'':'disabled')+' onclick="upgBld('+i+')">'+(b.timer>0?'EN COURS':ok?'AMELIORER':'INSUFFISANT')+'</button><button class="mb mb-cl" onclick="closeMo()">FERMER</button>';document.getElementById('mo-bg').classList.add('on');}
+function upgBld(i){const b=G.buildings[i],m=1.5;const cO=Math.floor(b.cOr*Math.pow(m,b.lv-1)),cB=Math.floor(b.cBo*Math.pow(m,b.lv-1)),cP=Math.floor(b.cPi*Math.pow(m,b.lv-1));if(G.or<cO||G.bois<cB||G.pierre<cP||b.timer>0)return;G.or-=cO;G.bois-=cB;G.pierre-=cP;b.timer=5;closeMo();toast(b.name+' en amelioration!');render();const ti=setInterval(()=>{b.timer--;if(b.timer<=0){clearInterval(ti);b.lv++;toast(b.name+' niv.'+b.lv+'!');}render();},1000);}
+const mapCells=[{x:15,y:15,ic:'🏰',tp:'barbare',info:'Camp barbare',pw:200},{x:45,y:25,ic:'⚔️',tp:'battle',info:'Zone de combat',pw:0},{x:25,y:50,ic:'🌲',tp:'res',info:'Foret - 500 bois',pw:0},{x:65,y:40,ic:'🏴',tp:'enemy',info:'Legion_IX',pw:3200},{x:40,y:65,ic:'⛰️',tp:'res',info:'Montagne - 800 pierre',pw:0},{x:75,y:20,ic:'🏠',tp:'mine',info:'Votre fief',pw:0},{x:55,y:55,ic:'🛖',tp:'barbare',info:'Village barbare',pw:150},{x:30,y:78,ic:'🏛️',tp:'market',info:'Marche regional',pw:0}];
+function renderMap(){document.getElementById('map-area').innerHTML=mapCells.map((c,i)=>'<div class="mc2 '+(c.tp==='mine'?'mine':'')+'" style="left:'+c.x+'%;top:'+c.y+'%" onclick="tapMap('+i+')">'+c.ic+'</div>').join('');}
+function tapMap(i){const c=mapCells[i];let act='';if(c.tp==='barbare')act='<button class="bt bt-g" style="width:100%;max-width:100%;padding:8px;margin-top:6px" onclick="doRaid()">ATTAQUER (Pw:'+c.pw+')</button>';else if(c.tp==='res')act='<button class="bt bt-v" style="width:100%;max-width:100%;padding:8px;margin-top:6px" onclick="collectRes()">RECOLTER</button>';else if(c.tp==='mine')act='<p style="margin-top:4px;color:#d4a830">Votre base</p>';else if(c.tp==='enemy')act='<p style="margin-top:4px;color:#e74c3c">Puissance: '+c.pw+' - Trop puissant!</p>';document.getElementById('map-info').innerHTML='<h3>'+c.ic+' '+c.info+'</h3>'+act;}
+function collectRes(){const r=Math.floor(Math.random()*200+50);const t=Math.random()>.5?'bois':'pierre';G[t]+=r;toast('+'+r+' '+t);render();}
+function renderArmy(){const leg=Math.floor(G.troupes*.6),arc=Math.floor(G.troupes*.3),cav=G.troupes-leg-arc;document.getElementById('army-card').innerHTML='<h3>Mon armee</h3><p>Legionnaires: '+leg+' | Archers: '+arc+' | Cavaliers: '+cav+'</p><p style="color:#d4a830;font-weight:700;margin-top:4px;font-size:1em">Puissance: '+(G.troupes*9)+'</p>';}
+async function doRaid(){if(G.attacks<=0){toast("Plus d'attaques!",'bad');return;}G.attacks--;let handled=false;if(!OFFLINE&&session){const r=await callFn('resolve_combat',{cible_id:'bot_'+Math.floor(Math.random()*100),type_cible:'bot'});if(r){const win=r.vainqueur===userId;G.combatLog.unshift({w:win,t:win?'Victoire! +'+(r.pillage?.or||0)+' or':'Defaite... -'+((r.pertes_attaquant)||0)+' troupes'});if(win&&r.pillage)G.or+=(r.pillage.or||0);toast(win?'Victoire!':'Defaite...',win?'':'bad');handled=true;}}if(!handled){const win=Math.random()>.3;const rw=Math.floor(Math.random()*200+50);if(win){G.or+=rw;G.combatLog.unshift({w:true,t:'Victoire! +'+rw+' or'});toast('Victoire! +'+rw+' or');}else{const loss=Math.floor(Math.random()*10+5);G.troupes=Math.max(0,G.troupes-loss);G.combatLog.unshift({w:false,t:'Defaite -'+loss+' troupes'});toast('Defaite...','bad');}}if(G.combatLog.length>10)G.combatLog.pop();render();}
+function renderCombatLog(){document.getElementById('clog').innerHTML=G.combatLog.length?G.combatLog.map(e=>'<div class="cl-e '+(e.w?'cl-w':'cl-l')+'">'+e.t+'</div>').join(''):'<p style="font-size:.78em;color:#555">Aucun combat</p>';}
+function renderClan(){document.getElementById('clan-card').innerHTML=G.clan?'<h3>Mon Clan</h3><p>ID: '+G.clan+'</p><button class="bt bt-v" style="width:100%;max-width:100%;padding:8px;margin-top:8px" onclick="leaveClan()">QUITTER</button>':'<h3>Rejoindre un clan</h3><p>Participez aux guerres et partagez les ressources.</p><button class="bt bt-v" style="width:100%;max-width:100%;padding:8px;margin-top:8px" onclick="joinClan()">CHERCHER</button>';}
+async function joinClan(){if(!OFFLINE&&session){const r=await callFn('gestion_clans',{action:'rejoindre',clan_id:'clan_alpha'});if(r&&r.succes){G.clan='clan_alpha';toast('Clan rejoint!');render();return;}}G.clan='Legion_Gaule';toast('Clan rejoint!');render();}
+async function leaveClan(){if(!OFFLINE&&session){await callFn('gestion_clans',{action:'quitter'});}G.clan=null;toast('Clan quitte');render();}
+function renderChat(){document.getElementById('chat-list').innerHTML=G.chatMsgs.length?G.chatMsgs.slice(-8).map(m=>'<div class="ch-m"><span class="ch-s">['+m.s+']</span> <span class="ch-t">'+m.t+'</span></div>').join(''):'<p style="font-size:.75em;color:#555">Aucun message</p>';}
+async function sendChat(){const inp=document.getElementById('ch-inp');const txt=inp.value.trim();if(!txt)return;inp.value='';G.chatMsgs.push({s:'Vous',t:txt});if(!OFFLINE&&session){await callFn('chat_messages',{action:'envoyer',canal:'global',contenu:txt});}render();setTimeout(()=>{const bots=['Maximus','Vercingetorix','CaesarFan','Brennus','Ambiorix'];const rep=['Salut!','Bienvenue!','Alliance?','GG!','Bonne chance!','A vos ordres!','Pour la Gaule!'];G.chatMsgs.push({s:bots[Math.floor(Math.random()*bots.length)],t:rep[Math.floor(Math.random()*rep.length)]});render();},1500);}
+async function loadChat(){if(OFFLINE)return;const r=await callFn('chat_messages',{action:'lire',canal:'global'});if(r&&r.messages){G.chatMsgs=r.messages.map(m=>({s:m.pseudo||'???',t:m.contenu}));}}
+async function renderLeaderboard(){let html='<p style="font-size:.78em">1. Legion_IX - 12500<br>2. GauloisFou - 9800<br><span style="color:#d4a830;font-weight:700">3. Vous - '+G.xp+'</span></p>';if(!OFFLINE&&session){const r=await callFn('saison_leaderboard',{action:'classement',type_classement:'xp'});if(r&&r.top10){html=r.top10.map((e,i)=>'<p style="font-size:.78em;'+(e.player_id===userId?'color:#d4a830;font-weight:700':'color:#999')+'">'+(i+1)+'. '+(e.pseudo||'Anon')+' - '+e.score+'</p>').join('');if(r.mon_rang)html+='<p style="color:#d4a830;font-size:.78em;margin-top:6px">Votre rang: #'+r.mon_rang+'</p>';}}document.getElementById('leaderboard').innerHTML=html;}
+function renderProd(){const sc=G.buildings.find(b=>b.id==='scierie'),mi=G.buildings.find(b=>b.id==='mine'),fe=G.buildings.find(b=>b.id==='ferme');document.getElementById('prod-card').innerHTML='<h3>Production / heure</h3><p>Or: +120 | Bois: +'+(sc.pv*sc.lv)+' | Pierre: +'+(mi.pv*mi.lv)+' | Food: +'+(fe.pv*fe.lv)+'</p>';}
+function renderMarket(){const items=[{n:'500 Bois',c:'200 or',fn:function(){if(G.or>=200){G.or-=200;G.bois+=500;toast('+500 bois');render();}else toast('Pas assez','bad');}},{n:'300 Pierre',c:'150 or',fn:function(){if(G.or>=150){G.or-=150;G.pierre+=300;toast('+300 pierre');render();}else toast('Pas assez','bad');}},{n:'200 Or',c:'400 bois',fn:function(){if(G.bois>=400){G.bois-=400;G.or+=200;toast('+200 or');render();}else toast('Pas assez','bad');}}];window._mkt=items;document.getElementById('market').innerHTML=items.map((it,i)=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div><p style="color:#eee;font-size:.82em">'+it.n+'</p><p style="font-size:.7em">'+it.c+'</p></div><button style="padding:5px 12px;border-radius:6px;background:#d4a830;color:#0a0a1a;border:none;font-weight:700;font-size:.75em;cursor:pointer" onclick="window._mkt['+i+'].fn()">ACHETER</button></div>').join('');}
+function renderShop(){document.getElementById('shop').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><div><p style="color:#eee;font-size:.82em">Pack Debutant</p><p>500 or + 200 bois</p></div><button class="bt bt-g" style="width:auto;padding:6px 14px;min-width:0;margin:0;font-size:.78em" onclick="buyPack()">'+(G.packBought?'DEJA PRIS':'GRATUIT')+'</button></div>';}
+function buyPack(){if(G.packBought){toast('Deja reclame!','bad');return;}G.or+=500;G.bois+=200;G.packBought=true;toast('+500 or, +200 bois!');render();}
+function renderChest(){document.getElementById('chest-card').innerHTML='<h3>Coffre du jour</h3><div style="text-align:center;padding:8px"><div style="font-size:2.5em">'+(G.chestOpened?'📭':'🎁')+'</div><button class="bt bt-g" style="padding:8px;margin-top:6px" onclick="openChest()">'+(G.chestOpened?'DEJA OUVERT':'OUVRIR')+'</button></div>';}
+function openChest(){if(G.chestOpened){toast('Deja ouvert!','bad');return;}const r=Math.floor(Math.random()*300+100);G.or+=r;G.chestOpened=true;toast('Coffre: +'+r+' or!');render();}
+function closeMo(){document.getElementById('mo-bg').classList.remove('on');}
+let tT;function toast(m,c){const t=document.getElementById('toast');t.textContent=m;t.className='toast on'+(c==='bad'?' bad':'');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('on'),2500);}
+setInterval(()=>{G.or+=2;G.bois+=1;G.pierre+=1;G.food+=1;if(G.attacks<G.maxAtk&&Math.random()>.85)G.attacks++;render();},4000);
+render();
+if(OFFLINE){G.chatMsgs=[{s:'Maximus',t:'Bienvenue!'},{s:'Vercingetorix',t:'Alliance?'},{s:'CaesarFan',t:'GG!'}];}
+</script>
+</body>
+</html>
