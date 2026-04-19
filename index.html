@@ -8,6 +8,8 @@
 <meta name="theme-color" content="#d4a830">
 <title>Bellum Galliae</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <script>
 const CONFIG = {
   SUPABASE_URL: 'https://dbgohwmvkhnwpzunhfqf.supabase.co',
@@ -136,5 +138,6 @@ setInterval(()=>{G.or+=2;G.bois+=1;G.pierre+=1;G.food+=1;if(G.attacks<G.maxAtk&&
 render();
 if(OFFLINE){G.chatMsgs=[{s:'Maximus',t:'Bienvenue!'},{s:'Vercingetorix',t:'Alliance?'},{s:'CaesarFan',t:'GG!'}];}
 </script>
+  <script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");</script>
 </body>
 </html>
