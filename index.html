@@ -371,6 +371,7 @@ async function loadPlayerState() {
       });
     }
 
+    if(typeof loadNodes==='function') await loadNodes();
     toast('Donnees synchronisees!');
   } catch(e) {
     console.error('loadPlayerState:', e);
@@ -522,7 +523,7 @@ async function upgBld(i) {
       // Sync serveur
       if(!OFFLINE&&session){
         sb.from('buildings').upsert({player_id:userId,type:b.id,niveau:b.lv},{onConflict:'player_id,type'}).then(()=>{});
-        sb.from('profiles').update({or_balance:G.or,bois:G.bois,pierre:G.pierre}).eq('id',userId).then(()=>{});
+        syncResources();
       }
     }
     render();
@@ -530,25 +531,96 @@ async function upgBld(i) {
 }
 
 // MAP
-const mapCells=[
-  {x:15,y:15,ic:'🏰',tp:'barbare',info:'Camp barbare',pw:200},
-  {x:45,y:25,ic:'⚔️',tp:'battle',info:'Zone de combat',pw:0},
-  {x:25,y:50,ic:'🌲',tp:'res',info:'Foret - 500 bois',pw:0},
-  {x:65,y:40,ic:'🏴',tp:'enemy',info:'Legion_IX',pw:3200},
-  {x:40,y:65,ic:'⛰️',tp:'res',info:'Montagne - 800 pierre',pw:0},
-  {x:75,y:20,ic:'🏠',tp:'mine',info:'Votre fief',pw:0},
-  {x:55,y:55,ic:'🛖',tp:'barbare',info:'Village barbare',pw:150},
-  {x:30,y:78,ic:'🏛️',tp:'market',info:'Marche regional',pw:0},
-];
-function renderMap(){document.getElementById('map-area').innerHTML=mapCells.map((c,i)=>`<div class="mc2 ${c.tp==='mine'?'mine':''}" style="left:${c.x}%;top:${c.y}%" onclick="tapMap(${i})">${c.ic}</div>`).join('');}
+// P1-D : mapCells remplacé par G.nodes (table nodes)
+
+// ============================================================
+// P1-C : SYNC RESSOURCES / TROUPES vers bonnes tables
+// (remplace les anciens profiles.update({or_balance,bois,...}) cassés)
+// ============================================================
+let _syncResTO=null;
+function syncResources(){
+  if(OFFLINE||!session||!userId)return;
+  clearTimeout(_syncResTO);
+  _syncResTO=setTimeout(()=>{
+    const payload={
+      profile_id: userId,
+      bois_entrepot: Math.max(0, G.bois|0),
+      pierre_entrepot: Math.max(0, G.pierre|0),
+      ble_entrepot: Math.max(0, G.food|0),
+    };
+    if(typeof G.eau==='number') payload.eau_entrepot=Math.max(0,G.eau|0);
+    if(typeof G.deniers==='number') payload.deniers=Math.max(0,G.deniers|0);
+    sb.from('player_resources').upsert(payload,{onConflict:'profile_id'}).then(r=>{
+      if(r&&r.error) console.warn('syncResources:',r.error.message);
+    });
+  },400);
+}
+const PIQUIER_ID='40000000-0000-0000-0000-000000000001';
+let _syncTrTO=null;
+function syncTroops(){
+  if(OFFLINE||!session||!userId)return;
+  clearTimeout(_syncTrTO);
+  _syncTrTO=setTimeout(()=>{
+    sb.from('player_troops').upsert({
+      profile_id: userId,
+      unit_type_id: PIQUIER_ID,
+      niveau_troupe: 1,
+      quantite: Math.max(0, G.troupes|0),
+      blessees: 0
+    },{onConflict:'profile_id,unit_type_id,niveau_troupe'}).then(r=>{
+      if(r&&r.error) console.warn('syncTroops:',r.error.message);
+    });
+  },400);
+}
+
+// P1-D : map dynamique sur table nodes (24 nœuds GDD §5.1)
+const FACTION_COLORS={
+  '10000000-0000-0000-0000-000000000001':'#2E7D32',
+  '10000000-0000-0000-0000-000000000002':'#C62828',
+  '10000000-0000-0000-0000-000000000003':'#E65100',
+  '10000000-0000-0000-0000-000000000004':'#1565C0',
+};
+const FACTION_NAMES={
+  '10000000-0000-0000-0000-000000000001':'Verte',
+  '10000000-0000-0000-0000-000000000002':'Rouge',
+  '10000000-0000-0000-0000-000000000003':'Orange',
+  '10000000-0000-0000-0000-000000000004':'Bleue',
+};
+G.nodes=[]; G.selectedNode=null;
+async function loadNodes(){
+  if(OFFLINE||G.nodes.length)return;
+  const { data, error } = await sb.from('nodes')
+    .select('id, nom_historique, ville_moderne, type_noeud, faction_proprietaire_id, bonus_territoire, pos_x, pos_y')
+    .order('type_noeud', { ascending: true });
+  if(error){ console.warn('loadNodes:',error.message); return; }
+  G.nodes=data||[];
+}
+function renderMap(){
+  const area=document.getElementById('map-area'); if(!area)return;
+  if(!G.nodes.length){ area.innerHTML='<p style="color:#777;text-align:center;padding:30px;font-size:.8em">Chargement de la carte...</p>'; return; }
+  area.innerHTML=G.nodes.map((n,i)=>{
+    const lx=(n.pos_x/720*100).toFixed(1), ly=(n.pos_y/1280*100).toFixed(1);
+    const ic=n.type_noeud==='capitale'?'🏰':'🛖';
+    const col=FACTION_COLORS[n.faction_proprietaire_id]||'#777';
+    const mine=(n.id===G.noeud)?'mine':'';
+    return `<div class="mc2 ${mine}" style="left:${lx}%;top:${ly}%;border-color:${col};color:${col}" title="${n.nom_historique} (${n.ville_moderne})" onclick="tapMap(${i})">${ic}</div>`;
+  }).join('');
+}
 function tapMap(i){
-  const c=mapCells[i];
+  const n=G.nodes[i]; if(!n)return;
+  G.selectedNode=n;
+  const fac=FACTION_NAMES[n.faction_proprietaire_id]||'Neutre';
+  const col=FACTION_COLORS[n.faction_proprietaire_id]||'#777';
+  const isMine=n.id===G.noeud, isCap=n.type_noeud==='capitale';
+  const same=n.faction_proprietaire_id&&n.faction_proprietaire_id===G.faction;
   let act='';
-  if(c.tp==='barbare') act=`<button class="bt bt-g" style="width:100%;max-width:100%;padding:8px;margin-top:6px" onclick="doRaid()">ATTAQUER (Pw:${c.pw})</button>`;
-  else if(c.tp==='res') act=`<button class="bt bt-v" style="width:100%;max-width:100%;padding:8px;margin-top:6px" onclick="collectRes()">RECOLTER</button>`;
-  else if(c.tp==='mine') act='<p style="margin-top:4px;color:#d4a830">Votre base</p>';
-  else if(c.tp==='enemy') act=`<p style="margin-top:4px;color:#e74c3c">Puissance: ${c.pw} - Trop puissant!</p>`;
-  document.getElementById('map-info').innerHTML=`<h3>${c.ic} ${c.info}</h3>${act}`;
+  if(isMine) act='<p style="margin-top:6px;color:#d4a830">📍 Votre position actuelle</p>';
+  else if(isCap&&!same) act='<p style="margin-top:6px;color:#e74c3c">Capitale ennemie — inattaquable (GDD §5.2)</p>';
+  else if(isCap&&same) act='<p style="margin-top:6px;color:#2ecc71">Capitale alliée</p>';
+  else if(same) act='<p style="margin-top:6px;color:#2ecc71">Village allié</p>';
+  else act=`<button class="bt bt-g" style="width:100%;max-width:100%;padding:8px;margin-top:6px" onclick="doRaid()">ATTAQUER ce village</button>`;
+  const bonus=n.bonus_territoire?`<p style="font-size:.75em;color:#bbb;margin-top:2px">Bonus : ${n.bonus_territoire}</p>`:'';
+  document.getElementById('map-info').innerHTML=`<h3>${isCap?'🏰':'🛖'} ${n.nom_historique} <span style="font-size:.7em;color:#888">(${n.ville_moderne})</span></h3><p style="font-size:.8em"><span style="color:${col};font-weight:700">●</span> ${fac}</p>${bonus}${act}`;
 }
 async function collectRes(){
   const r=Math.floor(Math.random()*200+50);
@@ -556,8 +628,7 @@ async function collectRes(){
   G[t]+=r; toast('+'+r+' '+t); render();
   // Sync serveur
   if(!OFFLINE&&session){
-    const upd={}; upd[t==='bois'?'bois':'pierre']=G[t];
-    sb.from('profiles').update(upd).eq('id',userId).then(()=>{});
+    syncResources();
   }
 }
 
@@ -598,7 +669,7 @@ async function recruitTroops(){
   G.or-=cost; G.troupes+=10; G.troupes_max=Math.max(G.troupes_max,G.troupes);
   toast('+10 troupes recrutees!'); render();
   if(!OFFLINE&&session){
-    sb.from('profiles').update({or_balance:G.or,troupes:G.troupes}).eq('id',userId).then(()=>{});
+    syncResources(); syncTroops();
   }
 }
 
@@ -665,7 +736,7 @@ async function sendChat(){
   G.chatMsgs.push({s:'Vous',t:txt});
 
   if(!OFFLINE&&session){
-    await callFn('chat_messages',{action:'envoyer',canal:'global',contenu:txt});
+    await callFn('chat_messages',{action:'envoyer',canal:'faction',contenu:txt});
   }
   render();
   // Bot reply
@@ -678,7 +749,7 @@ async function sendChat(){
 }
 async function loadChat(){
   if(OFFLINE)return;
-  const r=await callFn('chat_messages',{action:'lire',canal:'global'});
+  const r=await callFn('chat_messages',{action:'lire',canal:'faction'});
   if(r&&r.messages){G.chatMsgs=r.messages.map(m=>({s:m.pseudo||'???',t:m.contenu}));}
 }
 
@@ -725,7 +796,7 @@ async function buyPack(){
     if(r&&r.erreur){toast(r.erreur,'bad');return;}
   }
   G.or+=500;G.bois+=200;G.packBought=true;toast('+500 or, +200 bois!');
-  if(!OFFLINE&&session){sb.from('profiles').update({or_balance:G.or,bois:G.bois}).eq('id',userId).then(()=>{});}
+  syncResources();
   render();
 }
 function renderChest(){
@@ -735,7 +806,7 @@ async function openChest(){
   if(G.chestOpened){toast('Deja ouvert!','bad');return;}
   const rw=Math.floor(Math.random()*300+100);
   G.or+=rw;G.chestOpened=true;toast('Coffre: +'+rw+' or!');
-  if(!OFFLINE&&session){sb.from('profiles').update({or_balance:G.or}).eq('id',userId).then(()=>{});}
+  syncResources();
   render();
 }
 
