@@ -14,6 +14,9 @@
 <link rel="dns-prefetch" href="https://dbgohwmvkhnwpzunhfqf.supabase.co">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=IM+Fell+French+Canon:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const CONFIG = {
@@ -23,121 +26,638 @@ const CONFIG = {
 };
 </script>
 <style>
+/* ============================================================
+   BELLUM GALLIAE — THÈME MÉDIÉVAL v2 (refonte visuelle 2026-04-21)
+   Palette : parchemin #f4e4bc / or #d4a830 / brun sombre #2c1810
+   Typos : Cinzel (titres), IM Fell French Canon (corps)
+   ============================================================ */
+:root{
+  --gold:#d4a830;
+  --gold-soft:#f0d060;
+  --gold-dark:#b8922a;
+  --parchment:#f4e4bc;
+  --parchment-soft:#faf0d4;
+  --ink:#2c1810;
+  --ink-soft:#3d2418;
+  --stone:#4a3828;
+  --stone-dark:#1e120a;
+  --blood:#8b2424;
+  --forest:#2d4a1f;
+  --sky:#1a2540;
+  --verte:#2E7D32;
+  --rouge:#C62828;
+  --orange:#E65100;
+  --bleue:#1565C0;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;font-family:'Segoe UI',system-ui,sans-serif;touch-action:manipulation;-webkit-user-select:none;user-select:none;color:#ccc}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(212,168,48,0.3);border-radius:2px}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+body{
+  font-family:'IM Fell French Canon','Garamond',Georgia,serif;
+  color:var(--parchment);
+  background:
+    radial-gradient(ellipse at top,#2a1a0f 0%,#120a06 60%,#050302 100%);
+}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:rgba(44,24,16,0.3)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold),var(--gold-dark));border-radius:3px}
+
+/* Titres : Cinzel (serif romaine majuscules gravées) */
+h1,h2,h3,.logo,.tt,.cd h3,.mo h2,.nb{
+  font-family:'Cinzel',Georgia,serif;
+  letter-spacing:1px;
+}
+
+/* Textures subtiles — « grain de parchemin » */
+.parchment-bg{
+  background-color:#f4e4bc;
+  background-image:
+    radial-gradient(circle at 20% 30%,rgba(139,69,19,0.06) 0%,transparent 40%),
+    radial-gradient(circle at 80% 70%,rgba(139,69,19,0.08) 0%,transparent 40%),
+    radial-gradient(circle at 50% 50%,rgba(212,168,48,0.05) 0%,transparent 60%);
+  color:var(--ink);
+}
 
 /* === LOADING === */
-#loading{position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .6s}
+#loading{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:radial-gradient(ellipse at center,#2a1a0f 0%,#0a0604 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:200;transition:opacity .6s;
+}
 #loading.done{opacity:0;pointer-events:none}
-#loading h1{color:#d4a830;font-size:2em;letter-spacing:5px;margin-bottom:16px;text-shadow:0 0 30px rgba(212,168,48,0.4)}
-.pbar{width:220px;height:6px;background:#222;border-radius:3px;overflow:hidden}.pfill{height:100%;background:linear-gradient(90deg,#d4a830,#f0d060);width:0%;transition:width .2s;border-radius:3px}
-#load-sub{color:#555;font-size:.75em;margin-top:10px}
+#loading h1{
+  color:var(--gold);font-family:'Cinzel',serif;font-weight:800;
+  font-size:2.1em;letter-spacing:6px;margin-bottom:22px;
+  text-shadow:0 0 30px rgba(212,168,48,.6),0 2px 0 #000,0 4px 12px rgba(0,0,0,.7);
+}
+#loading h1::before,#loading h1::after{
+  content:'✦';margin:0 12px;color:var(--gold-soft);font-size:.7em;
+  vertical-align:middle;opacity:.7;
+}
+.pbar{
+  width:240px;height:8px;background:#1a100a;
+  border:1px solid var(--gold-dark);border-radius:4px;overflow:hidden;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.6);
+}
+.pfill{
+  height:100%;width:0%;transition:width .2s;
+  background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-soft),var(--gold));
+  background-size:200% 100%;animation:shimmer 2s infinite linear;
+}
+@keyframes shimmer{0%{background-position:0 0}100%{background-position:200% 0}}
+#load-sub{color:var(--gold);opacity:.6;font-size:.8em;margin-top:14px;font-style:italic}
 
 /* === SCREENS === */
 .scr{display:none;width:100%;height:100%;flex-direction:column;position:absolute;top:0;left:0}
 .scr.on{display:flex}
 
 /* === LOGIN === */
-#s-login{background:linear-gradient(180deg,#0f1a2e 0%,#0a1628 50%,#0f3460 100%);align-items:center;justify-content:center;padding:0 32px;z-index:10}
-.logo{color:#d4a830;font-size:2.2em;font-weight:900;letter-spacing:5px;text-shadow:0 0 30px rgba(212,168,48,0.4)}
-.logo-sub{color:#556;font-size:.78em;margin:6px 0 18vh;letter-spacing:2px}
-.bt{display:block;width:100%;max-width:300px;padding:15px;border:2px solid;border-radius:12px;font-size:1em;font-weight:700;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;transition:all .12s;background:none;margin-bottom:12px}
-.bt:active{transform:scale(.96)}
-.bt-g{border-color:#d4a830;color:#d4a830}.bt-g:active{background:rgba(212,168,48,.2)}
-.bt-v{border-color:#4a9;color:#4a9}.bt-v:active{background:rgba(68,170,153,.15)}
-#login-msg{color:#777;font-size:.8em;margin-top:20px;text-align:center;min-height:24px;transition:color .3s}
-#login-msg.ok{color:#2ecc71}#login-msg.err{color:#e74c3c}
+#s-login{
+  background:
+    radial-gradient(ellipse at top,#3a2418 0%,#1a0e08 70%,#050302 100%);
+  align-items:center;justify-content:center;padding:0 32px;z-index:10;
+  position:relative;overflow:hidden;
+}
+#s-login::before{
+  content:'';position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(45deg,transparent 0,transparent 60px,rgba(212,168,48,.015) 60px,rgba(212,168,48,.015) 61px);
+  pointer-events:none;
+}
+.login-crest{
+  width:110px;height:110px;margin-bottom:10px;
+  filter:drop-shadow(0 4px 12px rgba(212,168,48,.3));
+}
+.logo{
+  color:var(--gold);font-family:'Cinzel',serif;font-weight:800;
+  font-size:2.3em;letter-spacing:7px;
+  text-shadow:0 0 40px rgba(212,168,48,.5),0 3px 0 #000,0 6px 16px rgba(0,0,0,.8);
+  text-align:center;line-height:1.1;
+}
+.logo-sub{
+  color:#a88450;font-family:'IM Fell French Canon',serif;font-style:italic;
+  font-size:.92em;margin:10px 0 12vh;letter-spacing:3px;text-align:center;
+}
+.logo-sub::before,.logo-sub::after{content:'— ';color:var(--gold);}
+.logo-sub::after{content:' —';}
+.bt{
+  display:block;width:100%;max-width:300px;padding:14px 18px;
+  border:2px double;border-radius:2px;
+  font-family:'Cinzel',serif;font-size:.95em;font-weight:600;letter-spacing:3px;
+  cursor:pointer;text-align:center;
+  -webkit-tap-highlight-color:transparent;transition:all .18s;
+  background:linear-gradient(180deg,rgba(40,24,14,.6),rgba(20,12,6,.8));
+  margin-bottom:14px;position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(212,168,48,.15);
+}
+.bt::before,.bt::after{
+  content:'';position:absolute;top:50%;width:6px;height:6px;
+  transform:translateY(-50%) rotate(45deg);
+  border:1px solid currentColor;opacity:.5;
+}
+.bt::before{left:10px}.bt::after{right:10px}
+.bt:active{transform:scale(.96);filter:brightness(1.3)}
+.bt-g{border-color:var(--gold);color:var(--gold);text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.bt-g:active{background:linear-gradient(180deg,rgba(212,168,48,.25),rgba(80,52,16,.4))}
+.bt-v{border-color:#7a9a6a;color:#a8c898;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.bt-v:active{background:linear-gradient(180deg,rgba(120,152,100,.2),rgba(40,60,30,.3))}
+#login-msg{color:#a88450;font-size:.85em;margin-top:20px;text-align:center;min-height:24px;transition:color .3s;font-style:italic}
+#login-msg.ok{color:#a8c898}
+#login-msg.err{color:#d47474}
 
 /* === TOP BAR === */
-.tb{background:rgba(0,0,0,.55);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(212,168,48,.2);flex-shrink:0}
-.tb .tt{color:#d4a830;font-weight:700;font-size:.95em}
-.tb .rs{display:flex;gap:6px;font-size:.65em;color:#aaa}
-.tb .rs span{background:rgba(255,255,255,.05);padding:2px 7px;border-radius:5px}
+.tb{
+  background:
+    linear-gradient(180deg,rgba(20,12,6,.95),rgba(10,6,3,.85));
+  padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--gold-dark);
+  box-shadow:0 2px 6px rgba(0,0,0,.6),inset 0 -1px 0 rgba(212,168,48,.2);
+  flex-shrink:0;position:relative;
+}
+.tb::after{
+  content:'';position:absolute;bottom:-4px;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.4;
+}
+.tb .tt{
+  color:var(--gold);font-weight:600;font-size:1em;
+  text-shadow:0 1px 2px rgba(0,0,0,.8);letter-spacing:2px;
+}
+.tb .rs{display:flex;gap:6px;font-size:.72em;color:#d4c098;align-items:center}
+.tb .rs span{
+  background:linear-gradient(180deg,rgba(212,168,48,.08),rgba(44,24,16,.5));
+  padding:3px 9px;border-radius:2px;border:1px solid rgba(212,168,48,.2);
+  display:inline-flex;align-items:center;gap:4px;
+  font-family:'IM Fell French Canon',serif;
+}
+.tb .rs .rs-ic{width:13px;height:13px;fill:var(--gold-soft);opacity:.9}
 
 /* === CONTENT === */
-.ct{flex:1;padding:10px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.ct{
+  flex:1;padding:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:
+    linear-gradient(180deg,rgba(10,6,3,0) 0%,rgba(10,6,3,.3) 100%);
+}
 
-/* === CARDS === */
-.cd{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:12px;margin-bottom:9px}
-.cd h3{color:#d4a830;font-size:.88em;margin-bottom:5px}.cd p{font-size:.78em;line-height:1.4;color:#999}
+/* === CARDS (parchemin) === */
+.cd{
+  background:
+    linear-gradient(180deg,rgba(244,228,188,.06),rgba(44,24,16,.15)),
+    rgba(20,12,6,.65);
+  border:1px solid rgba(212,168,48,.3);border-radius:3px;
+  padding:14px;margin-bottom:10px;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(212,168,48,.15),
+    inset 0 -1px 0 rgba(0,0,0,.3);
+  position:relative;
+}
+.cd::before{
+  content:'';position:absolute;top:6px;left:6px;right:6px;bottom:6px;
+  border:1px solid rgba(212,168,48,.08);pointer-events:none;
+}
+.cd h3{
+  color:var(--gold);font-size:.95em;margin-bottom:7px;
+  letter-spacing:2px;text-shadow:0 1px 2px rgba(0,0,0,.6);
+  display:flex;align-items:center;gap:8px;
+}
+.cd h3::before{
+  content:'';display:inline-block;width:16px;height:1px;
+  background:linear-gradient(90deg,var(--gold),transparent);
+}
+.cd p{font-size:.88em;line-height:1.5;color:#d4c098;font-family:'IM Fell French Canon',serif}
 
 /* === BUILDINGS === */
-.bg{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.bl{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .12s;position:relative}
-.bl:active{background:rgba(212,168,48,.12);border-color:rgba(212,168,48,.4);transform:scale(.97)}
-.bl .bi{font-size:1.8em;margin-bottom:3px}.bl .bn{color:#bbb;font-size:.72em}.bl .bv{color:#d4a830;font-size:.68em;margin-top:2px}
-.bl .bt-sm{color:#4a9;font-size:.6em;margin-top:3px}
+.bg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bl{
+  background:
+    linear-gradient(180deg,rgba(244,228,188,.08),rgba(44,24,16,.3)),
+    rgba(20,12,6,.5);
+  border:2px solid rgba(212,168,48,.25);border-radius:3px;
+  padding:14px 8px 10px;text-align:center;cursor:pointer;transition:all .15s;
+  position:relative;min-height:84px;
+  box-shadow:0 2px 6px rgba(0,0,0,.4),inset 0 1px 0 rgba(212,168,48,.1);
+}
+.bl::before,.bl::after{
+  content:'';position:absolute;width:10px;height:10px;
+  border:1px solid var(--gold);opacity:.45;
+}
+.bl::before{top:4px;left:4px;border-right:none;border-bottom:none}
+.bl::after{bottom:4px;right:4px;border-left:none;border-top:none}
+.bl:active{
+  background:
+    linear-gradient(180deg,rgba(212,168,48,.22),rgba(80,52,16,.4)),
+    rgba(20,12,6,.5);
+  border-color:var(--gold);transform:scale(.97);
+  box-shadow:0 4px 12px rgba(212,168,48,.25),inset 0 0 20px rgba(212,168,48,.1);
+}
+.bl .bi{
+  font-size:1.6em;margin-bottom:4px;
+  display:flex;align-items:center;justify-content:center;height:36px;
+}
+.bl .bi svg{width:36px;height:36px;fill:var(--gold);filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.bl .bn{
+  color:var(--parchment);font-size:.78em;font-weight:600;
+  font-family:'Cinzel',serif;letter-spacing:1px;
+}
+.bl .bv{
+  color:var(--gold);font-size:.74em;margin-top:3px;font-weight:600;
+  font-family:'IM Fell French Canon',serif;font-style:italic;
+}
+.bl .bt-sm{color:#a8c898;font-size:.65em;margin-top:3px;font-style:italic}
 
 /* === NAV === */
-.nv{background:rgba(0,0,0,.7);padding:5px 0;display:flex;border-top:1px solid rgba(212,168,48,.2);flex-shrink:0}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;color:#444;font-size:.55em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .12s;border:none;background:none}
-.nb.on{color:#d4a830}.nb i{font-size:1.5em;font-style:normal}
+.nv{
+  background:
+    linear-gradient(180deg,rgba(10,6,3,.85),rgba(20,12,6,.98));
+  padding:6px 0 max(6px,env(safe-area-inset-bottom)/2);display:flex;
+  border-top:2px solid var(--gold-dark);
+  box-shadow:0 -3px 10px rgba(0,0,0,.6),inset 0 1px 0 rgba(212,168,48,.15);
+  flex-shrink:0;position:relative;
+}
+.nv::before{
+  content:'';position:absolute;top:-4px;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5;
+}
+.nb{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 2px;min-height:52px;
+  color:#6a4e2e;font-size:.62em;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .15s;
+  border:none;background:none;font-family:'Cinzel',serif;letter-spacing:1.5px;
+}
+.nb svg{width:22px;height:22px;fill:currentColor;transition:all .15s}
+.nb.on{color:var(--gold);text-shadow:0 0 8px rgba(212,168,48,.5)}
+.nb.on svg{filter:drop-shadow(0 0 6px rgba(212,168,48,.6));transform:translateY(-1px)}
+.nb:active{color:var(--gold-soft)}
 
 /* === MODAL === */
-.mo-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.mo-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.8);
+  z-index:100;display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(3px);
+}
 .mo-bg.on{display:flex}
-.mo{background:#162030;border:1px solid rgba(212,168,48,.25);border-radius:14px;padding:18px;width:100%;max-width:340px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.5)}
-.mo h2{color:#d4a830;font-size:1em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.mo .mr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.8em}
-.mo .ml{color:#888}.mo .mv{color:#eee;font-weight:600}
-.mo .mc{margin-top:8px;padding:8px;background:rgba(0,0,0,.3);border-radius:7px;font-size:.75em}
-.mo .mc .co{color:#e74c3c}.mo .mc .co.ok{color:#2ecc71}
-.mb{width:100%;margin-top:10px;padding:11px;border-radius:9px;font-weight:700;font-size:.9em;cursor:pointer;border:none;transition:all .12s}
-.mb:active{transform:scale(.97)}
-.mb-up{background:#d4a830;color:#0a0a1a}.mb-up:active{background:#b8922a}
-.mb-up[disabled]{opacity:.35;cursor:default;transform:none}
-.mb-cl{background:rgba(255,255,255,.07);color:#888}
+.mo{
+  background:
+    linear-gradient(180deg,rgba(244,228,188,.08),rgba(44,24,16,.4)),
+    linear-gradient(180deg,#1a100a,#0f0804);
+  border:2px solid var(--gold-dark);border-radius:3px;
+  padding:22px 20px;width:100%;max-width:360px;max-height:82vh;overflow-y:auto;
+  box-shadow:
+    0 12px 40px rgba(0,0,0,.8),
+    0 0 0 1px var(--gold) inset,
+    0 0 0 4px #1a100a inset,
+    inset 0 1px 0 rgba(212,168,48,.2);
+  position:relative;
+}
+.mo::before,.mo::after{
+  content:'';position:absolute;width:18px;height:18px;
+  border:2px solid var(--gold);opacity:.6;
+}
+.mo::before{top:8px;left:8px;border-right:none;border-bottom:none}
+.mo::after{bottom:8px;right:8px;border-left:none;border-top:none}
+.mo h2{
+  color:var(--gold);font-size:1.1em;margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;letter-spacing:2px;
+  padding-bottom:8px;border-bottom:1px solid rgba(212,168,48,.3);
+  text-shadow:0 1px 2px rgba(0,0,0,.6);
+}
+.mo h2 svg{width:28px;height:28px;fill:var(--gold-soft)}
+.mo .mr{
+  display:flex;justify-content:space-between;padding:7px 0;
+  border-bottom:1px solid rgba(212,168,48,.1);font-size:.88em;
+}
+.mo .ml{color:#a88450;font-style:italic}
+.mo .mv{color:var(--parchment);font-weight:600;font-family:'Cinzel',serif;letter-spacing:1px}
+.mo .mc{
+  margin-top:10px;padding:10px;
+  background:rgba(10,6,3,.5);border:1px solid rgba(212,168,48,.15);border-radius:2px;
+  font-size:.82em;
+}
+.mo .mc .co{color:#d47474;margin-right:8px;font-family:'Cinzel',serif;letter-spacing:1px;font-size:.9em}
+.mo .mc .co.ok{color:#a8c898}
+.mb{
+  width:100%;margin-top:12px;padding:12px;
+  border-radius:2px;font-family:'Cinzel',serif;
+  font-weight:600;font-size:.92em;letter-spacing:3px;
+  cursor:pointer;border:2px double;transition:all .15s;
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
+}
+.mb:active{transform:scale(.97);filter:brightness(1.15)}
+.mb-up{
+  background:linear-gradient(180deg,var(--gold-soft),var(--gold),var(--gold-dark));
+  color:var(--stone-dark);border-color:var(--gold-dark);
+  box-shadow:0 3px 8px rgba(212,168,48,.3),inset 0 1px 0 rgba(255,255,255,.3);
+}
+.mb-up:active{filter:brightness(1.2)}
+.mb-up[disabled]{opacity:.35;cursor:default;transform:none;filter:grayscale(.5)}
+.mb-cl{
+  background:linear-gradient(180deg,rgba(120,100,80,.3),rgba(44,24,16,.5));
+  color:#a88450;border-color:rgba(212,168,48,.3);
+}
 
-/* === MAP === */
-.ma{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#1a3010,#0d200a 50%,#253d12);border-radius:11px;position:relative;overflow:hidden}
-.mc2{position:absolute;width:40px;height:40px;border:1px solid rgba(255,255,255,.12);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1.2em;cursor:pointer;transition:all .12s}
-.mc2:active{transform:scale(1.2);border-color:#d4a830}.mc2.mine{border-color:#d4a830;background:rgba(212,168,48,.2);box-shadow:0 0 8px rgba(212,168,48,.25)}
+/* === MAP (carte de France stylisée) === */
+.ma{
+  width:100%;aspect-ratio:1;
+  background:
+    radial-gradient(ellipse at center,#3a5428 0%,#1f2e12 55%,#0a1405 100%);
+  border:2px solid var(--gold-dark);border-radius:3px;
+  position:relative;overflow:hidden;
+  box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 0 30px rgba(0,0,0,.5);
+}
+.ma::before{
+  content:'';position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(45deg,transparent 0,transparent 40px,rgba(244,228,188,.03) 40px,rgba(244,228,188,.03) 41px),
+    repeating-linear-gradient(-45deg,transparent 0,transparent 40px,rgba(244,228,188,.03) 40px,rgba(244,228,188,.03) 41px);
+  pointer-events:none;
+}
+.ma-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ma-svg .france-contour{
+  fill:rgba(244,228,188,.08);
+  stroke:rgba(244,228,188,.35);
+  stroke-width:1.5;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));
+}
+.mc2{
+  position:absolute;width:42px;height:42px;
+  transform:translate(-50%,-50%);
+  border:2px solid;border-radius:50%;
+  background:radial-gradient(circle,rgba(20,12,6,.9),rgba(10,6,3,.95));
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;
+  box-shadow:0 3px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1);
+  z-index:2;
+}
+.mc2 svg{width:22px;height:22px;fill:currentColor;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
+.mc2:active{transform:translate(-50%,-50%) scale(1.2);z-index:5;box-shadow:0 0 16px currentColor}
+.mc2.mine{
+  border-color:var(--gold)!important;color:var(--gold)!important;
+  background:radial-gradient(circle,rgba(212,168,48,.25),rgba(40,24,12,.9));
+  box-shadow:0 0 16px rgba(212,168,48,.6),inset 0 0 8px rgba(212,168,48,.3);
+  animation:pulseGold 2.4s infinite ease-in-out;
+}
+@keyframes pulseGold{0%,100%{box-shadow:0 0 16px rgba(212,168,48,.6),inset 0 0 8px rgba(212,168,48,.3)}50%{box-shadow:0 0 28px rgba(212,168,48,.9),inset 0 0 12px rgba(212,168,48,.5)}}
+.mc2.capital::after{
+  content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+  width:0;height:0;border:4px solid transparent;border-bottom-color:currentColor;
+}
 
 /* === COMBAT LOG === */
-.cl-e{padding:7px 9px;border-radius:7px;margin-bottom:5px;font-size:.76em}
-.cl-w{background:rgba(46,204,113,.08);color:#2ecc71;border-left:3px solid #2ecc71}
-.cl-l{background:rgba(231,76,60,.08);color:#e74c3c;border-left:3px solid #e74c3c}
+.cl-e{
+  padding:8px 11px;border-radius:2px;margin-bottom:6px;font-size:.82em;
+  font-family:'IM Fell French Canon',serif;
+  border:1px solid;border-left-width:4px;
+  background:rgba(20,12,6,.5);
+}
+.cl-w{color:#a8c898;border-color:rgba(168,200,152,.4);border-left-color:#a8c898;background:rgba(45,74,31,.2)}
+.cl-l{color:#d47474;border-color:rgba(212,116,116,.4);border-left-color:#d47474;background:rgba(139,36,36,.15)}
 
 /* === CHAT === */
-.ch-m{padding:4px 0;font-size:.78em}.ch-s{color:#d4a830;font-weight:600}.ch-t{color:#bbb}
-.ch-in{display:flex;gap:6px;margin-top:8px}
-.ch-in input{flex:1;padding:8px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.3);color:#fff;font-size:.82em}
-.ch-in button{padding:8px 14px;border-radius:7px;background:#d4a830;color:#0a0a1a;border:none;font-weight:700;cursor:pointer}
+.ch-m{padding:5px 0;font-size:.88em;font-family:'IM Fell French Canon',serif;border-bottom:1px dotted rgba(212,168,48,.1)}
+.ch-s{color:var(--gold);font-weight:600;font-family:'Cinzel',serif;letter-spacing:.5px}
+.ch-t{color:#d4c098}
+.ch-in{display:flex;gap:6px;margin-top:10px}
+.ch-in input{
+  flex:1;padding:9px 11px;border-radius:2px;
+  border:1px solid rgba(212,168,48,.3);
+  background:rgba(10,6,3,.6);color:var(--parchment);
+  font-size:.88em;font-family:'IM Fell French Canon',serif;
+}
+.ch-in input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,168,48,.2)}
+.ch-in button{
+  padding:9px 16px;border-radius:2px;
+  background:linear-gradient(180deg,var(--gold-soft),var(--gold),var(--gold-dark));
+  color:var(--stone-dark);border:1px solid var(--gold-dark);
+  font-family:'Cinzel',serif;font-weight:600;letter-spacing:1px;cursor:pointer;
+}
+.ch-in button:active{filter:brightness(1.15)}
 
 /* === TOAST === */
-.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:8px 20px;border-radius:18px;font-size:.82em;font-weight:600;z-index:150;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
-.toast.on{opacity:1}.toast.bad{background:#e74c3c}
+.toast{
+  position:fixed;bottom:82px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:linear-gradient(180deg,rgba(45,74,31,.98),rgba(30,50,20,.98));
+  border:1px solid #a8c898;border-left:3px solid #a8c898;border-right:3px solid #a8c898;
+  color:var(--parchment);padding:10px 22px;border-radius:2px;
+  font-size:.9em;font-family:'Cinzel',serif;font-weight:600;letter-spacing:1.5px;
+  z-index:150;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,.7);
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.bad{background:linear-gradient(180deg,rgba(139,36,36,.98),rgba(80,20,20,.98));border-color:#d47474}
 
 /* === MISC === */
-.tag{position:fixed;bottom:2px;right:6px;color:rgba(255,255,255,.12);font-size:.5em;z-index:50}
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#d4a830;border-radius:50%;animation:spin .6s linear infinite}
+.tag{position:fixed;bottom:3px;right:8px;color:rgba(212,168,48,.25);font-size:.52em;z-index:50;font-family:'Cinzel',serif;letter-spacing:2px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(212,168,48,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.pulse{animation:pulse 2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.pulse{animation:pulseO 2s infinite}
+@keyframes pulseO{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* === ARMOIRIES FACTIONS (badges sur login) === */
+.crest-row{display:flex;gap:14px;justify-content:center;margin:14px 0 30px;opacity:.85}
+.crest-row svg{width:38px;height:50px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+
+/* Responsive petit écran */
+@media (max-height:640px){
+  .logo{font-size:1.9em}
+  .logo-sub{margin-bottom:10vh}
+  .login-crest{width:80px;height:80px}
+  .crest-row{margin:8px 0 18px}
+  .crest-row svg{width:30px;height:40px}
+}
+
+/* Accessibilité — zone tactile min 44px sur boutons majeurs */
+@media (pointer:coarse){
+  .bt,.mb,.ch-in button{min-height:44px}
+}
 </style>
 </head>
 <body>
 
+<!-- ============================================================
+     SVG SYMBOL LIBRARY — icônes bâtiments, ressources, UI, factions
+     Réutilisables via <svg><use href="#id"/></svg>
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <!-- Bâtiments -->
+  <symbol id="ic-castle" viewBox="0 0 32 32">
+    <path d="M4 28V14l4 2V10l4 3V7l4 4 4-4v6l4-3v6l4-2v14H4zm5-2h3v-6H9v6zm11 0h3v-6h-3v6zm-6-6v6h4v-6h-4z"/>
+  </symbol>
+  <symbol id="ic-barracks" viewBox="0 0 32 32">
+    <path d="M6 28V12l10-8 10 8v16H6zm8-2v-8h4v8h-4zm-4-10 6-5 6 5v1h-1l-5-4-5 4H10v-1z"/>
+    <path d="M16 13.5l1.8 3.6 4 .6-2.9 2.8.7 4L16 22.6l-3.6 1.9.7-4-2.9-2.8 4-.6z" opacity=".7"/>
+  </symbol>
+  <symbol id="ic-farm" viewBox="0 0 32 32">
+    <path d="M16 3l1 4 3-1-1 3 4 1-4 1 1 3-3-1-1 4-1-4-3 1 1-3-4-1 4-1-1-3 3 1z"/>
+    <path d="M6 28V18l10-6 10 6v10h-7v-6h-6v6H6z"/>
+  </symbol>
+  <symbol id="ic-mine" viewBox="0 0 32 32">
+    <path d="M7 28l6-16 3 6 3-6 6 16H7z"/>
+    <path d="M14 4l10 10-3 3L11 7z" opacity=".8"/>
+    <circle cx="15" cy="19" r="1.5" opacity=".6"/>
+    <circle cx="19" cy="22" r="1" opacity=".6"/>
+  </symbol>
+  <symbol id="ic-sawmill" viewBox="0 0 32 32">
+    <path d="M16 3l-3 6h6zM8 28V14h16v14H8zm3-3h3v-8h-3v8zm7 0h3v-8h-3v8z"/>
+    <path d="M4 11l8 3M28 11l-8 3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+  </symbol>
+  <symbol id="ic-tower" viewBox="0 0 32 32">
+    <path d="M10 28V12h3V8l3-2 3 2v4h3v16H10zm4-2h4V14h-4v12z"/>
+    <path d="M9 11v-3h2v3zm12 0v-3h2v3zm-8-7V2h6v2z" opacity=".8"/>
+    <circle cx="16" cy="18" r="1.5"/>
+  </symbol>
+  <!-- Ressources -->
+  <symbol id="ic-coin" viewBox="0 0 32 32">
+    <circle cx="16" cy="16" r="13" opacity=".25"/>
+    <circle cx="16" cy="16" r="10"/>
+    <circle cx="16" cy="16" r="7" opacity=".5" fill="none" stroke="currentColor" stroke-width=".8"/>
+    <text x="16" y="20" text-anchor="middle" font-family="serif" font-weight="700" font-size="10" fill="#2c1810">D</text>
+  </symbol>
+  <symbol id="ic-wood" viewBox="0 0 32 32">
+    <ellipse cx="16" cy="8" rx="10" ry="3" opacity=".3"/>
+    <rect x="6" y="8" width="20" height="18" rx="1"/>
+    <ellipse cx="16" cy="8" rx="10" ry="3" fill="#2c1810" opacity=".4"/>
+    <path d="M10 10v14M16 10v14M22 10v14" stroke="#2c1810" stroke-width=".8" opacity=".4" fill="none"/>
+  </symbol>
+  <symbol id="ic-stone" viewBox="0 0 32 32">
+    <path d="M4 26l6-14 5 3 4-6 9 10-4 7H4z"/>
+    <path d="M10 12l5 3 4-6 9 10" stroke="#2c1810" stroke-width="1" fill="none" opacity=".4"/>
+  </symbol>
+  <symbol id="ic-wheat" viewBox="0 0 32 32">
+    <path d="M16 3v26" stroke="currentColor" stroke-width="1.5" fill="none"/>
+    <ellipse cx="12" cy="9" rx="2" ry="4" transform="rotate(-25 12 9)"/>
+    <ellipse cx="20" cy="9" rx="2" ry="4" transform="rotate(25 20 9)"/>
+    <ellipse cx="11" cy="14" rx="2" ry="4" transform="rotate(-25 11 14)"/>
+    <ellipse cx="21" cy="14" rx="2" ry="4" transform="rotate(25 21 14)"/>
+    <ellipse cx="10" cy="19" rx="2" ry="4" transform="rotate(-25 10 19)"/>
+    <ellipse cx="22" cy="19" rx="2" ry="4" transform="rotate(25 22 19)"/>
+    <ellipse cx="16" cy="7" rx="2" ry="4"/>
+    <ellipse cx="16" cy="12" rx="2" ry="4"/>
+  </symbol>
+  <symbol id="ic-water" viewBox="0 0 32 32">
+    <path d="M16 3c-4 6-8 11-8 16a8 8 0 1 0 16 0c0-5-4-10-8-16z"/>
+    <path d="M12 20c0 2 1 4 3 4" stroke="#2c1810" stroke-width="1" fill="none" opacity=".4"/>
+  </symbol>
+  <!-- Nav UI -->
+  <symbol id="nav-fief" viewBox="0 0 32 32">
+    <path d="M4 28V14l4 2V10l4 3V7l4 4 4-4v6l4-3v6l4-2v14H4zm5-2h3v-6H9v6zm11 0h3v-6h-3v6z"/>
+  </symbol>
+  <symbol id="nav-map" viewBox="0 0 32 32">
+    <path d="M3 6l8-3 10 3 8-3v23l-8 3-10-3-8 3V6zm8-1v22m10-19v22" stroke="currentColor" stroke-width="1.5" fill="none"/>
+  </symbol>
+  <symbol id="nav-combat" viewBox="0 0 32 32">
+    <path d="M4 4l10 10-2 2 2 2 4-4 2 2-2 2 10 10-2 2-10-10-2 2-2-2 4-4-2-2-2 2L2 6z"/>
+  </symbol>
+  <symbol id="nav-social" viewBox="0 0 32 32">
+    <circle cx="11" cy="11" r="4"/><circle cx="21" cy="11" r="4"/>
+    <path d="M3 26c0-4 4-7 8-7s8 3 8 7zM13 26c0-4 4-7 8-7s8 3 8 7z"/>
+  </symbol>
+  <symbol id="nav-shop" viewBox="0 0 32 32">
+    <path d="M6 10h20l-2 16H8zm4 0V7a6 6 0 0 1 12 0v3" fill="none" stroke="currentColor" stroke-width="2"/>
+    <circle cx="12" cy="16" r="1.2" fill="currentColor"/>
+    <circle cx="20" cy="16" r="1.2" fill="currentColor"/>
+  </symbol>
+  <!-- Nœuds carte -->
+  <symbol id="node-capital" viewBox="0 0 32 32">
+    <path d="M4 28V14l4 2V10l4 3V7l4 4 4-4v6l4-3v6l4-2v14H4zm6-2h3v-5h-3v5zm9 0h3v-5h-3v5zm-5-3v3h2v-3h-2z"/>
+  </symbol>
+  <symbol id="node-village" viewBox="0 0 32 32">
+    <path d="M16 5l-10 8v13h20V13zm-4 19v-7h8v7h-8z"/>
+  </symbol>
+  <!-- Armoiries factions (écus héraldiques, style gaulois/celtique) -->
+  <symbol id="crest-verte" viewBox="0 0 60 80">
+    <path d="M6 8h48v30c0 20-10 30-24 38C16 68 6 58 6 38z" fill="#2E7D32" stroke="#f0d060" stroke-width="2"/>
+    <path d="M6 8h48v30c0 20-10 30-24 38C16 68 6 58 6 38z" fill="none" stroke="#2c1810" stroke-width="1" opacity=".5"/>
+    <!-- Chêne druidique -->
+    <path d="M30 54V30m-10 4c0-6 4-10 10-10s10 4 10 10m-14 0c0-4 2-6 4-6m6 6c0-4-2-6-4-6" stroke="#f0d060" stroke-width="1.5" fill="none"/>
+    <circle cx="22" cy="28" r="3" fill="#f0d060"/>
+    <circle cx="30" cy="22" r="3" fill="#f0d060"/>
+    <circle cx="38" cy="28" r="3" fill="#f0d060"/>
+    <circle cx="26" cy="34" r="2.5" fill="#f0d060"/>
+    <circle cx="34" cy="34" r="2.5" fill="#f0d060"/>
+  </symbol>
+  <symbol id="crest-rouge" viewBox="0 0 60 80">
+    <path d="M6 8h48v30c0 20-10 30-24 38C16 68 6 58 6 38z" fill="#C62828" stroke="#f0d060" stroke-width="2"/>
+    <path d="M6 8h48v30c0 20-10 30-24 38C16 68 6 58 6 38z" fill="none" stroke="#2c1810" stroke-width="1" opacity=".5"/>
+    <!-- Sanglier stylisé -->
+    <path d="M16 40c0-4 4-8 10-8s6 2 8 2h8c2 0 2 2 0 4-1 1-4 1-4 1s0 4-2 6h-4c-2 0-3-1-3-1h-6c-4 0-7-2-7-4z" fill="#f0d060"/>
+    <path d="M18 48v4m6-4v4m8-4v4m6-4v4" stroke="#f0d060" stroke-width="2"/>
+    <circle cx="34" cy="38" r="1" fill="#2c1810"/>
+    <path d="M42 38l4-3m-4 5l4 1" stroke="#f0d060" stroke-width="1" fill="none"/>
+  </symbol>
+  <symbol id="crest-orange" viewBox="0 0 60 80">
+    <path d="M6 8h48v30c0 20-10 30-24 38C16 68 6 58 6 38z" fill="#E65100" stroke="#f0d060" stroke-width="2"/>
+    <path d="M6 8h48v30c0 20-10 30-24 38C16 68 6 58 6 38z" fill="none" stroke="#2c1810" stroke-width="1" opacity=".5"/>
+    <!-- Coq gaulois -->
+    <path d="M22 46c0-8 4-14 10-14s10 6 10 14c0 3-2 6-4 6H26c-2 0-4-3-4-6z" fill="#f0d060"/>
+    <path d="M28 30l-2-6m2 2l-4-2m6-2l0-4m4 4l2-4m2 6l4-2m-4 6l4-4" stroke="#f0d060" stroke-width="2" fill="none"/>
+    <circle cx="38" cy="36" r="1.5" fill="#2c1810"/>
+    <path d="M40 40l4-1-2 3z" fill="#f0d060"/>
+    <path d="M26 52v6m4-6v6m6-6v6m4-6v6" stroke="#f0d060" stroke-width="2"/>
+  </symbol>
+  <symbol id="crest-bleue" viewBox="0 0 60 80">
+    <path d="M6 8h48v30c0 20-10 30-24 38C16 68 6 58 6 38z" fill="#1565C0" stroke="#f0d060" stroke-width="2"/>
+    <path d="M6 8h48v30c0 20-10 30-24 38C16 68 6 58 6 38z" fill="none" stroke="#2c1810" stroke-width="1" opacity=".5"/>
+    <!-- Torque celtique (bracelet) avec triskèle -->
+    <circle cx="30" cy="38" r="14" fill="none" stroke="#f0d060" stroke-width="3"/>
+    <circle cx="30" cy="38" r="14" fill="none" stroke="#2c1810" stroke-width="1" opacity=".5" stroke-dasharray="2,2"/>
+    <path d="M30 38 a4 4 0 0 1 4 -4 a4 4 0 0 1 4 4 a8 8 0 0 1 -8 8 z
+             M30 38 a4 4 0 0 0 -4 -4 a4 4 0 0 0 -4 4 a8 8 0 0 0 8 8 z
+             M30 38 a4 4 0 0 1 0 -8 a8 8 0 0 1 8 8 z" fill="#f0d060"/>
+    <circle cx="18" cy="52" r="3" fill="#f0d060"/>
+    <circle cx="42" cy="52" r="3" fill="#f0d060"/>
+  </symbol>
+  <!-- Logo Bellum Galliae (aigle romaine) -->
+  <symbol id="crest-bellum" viewBox="0 0 120 120">
+    <!-- Laurier -->
+    <path d="M20 60c0-20 15-40 40-40s40 20 40 40-15 40-40 40-40-20-40-40z"
+          fill="none" stroke="#d4a830" stroke-width="2"/>
+    <path d="M20 60c0-20 15-40 40-40s40 20 40 40-15 40-40 40-40-20-40-40z"
+          fill="none" stroke="#d4a830" stroke-width="3" stroke-dasharray="0.5,5"/>
+    <!-- Aigle stylisée -->
+    <path d="M60 30c-3 0-5 2-5 5l-2 2-15-6 6 10-8 2 8 3-4 8 10-5 4 6 4-6 10 5-4-8 8-3-8-2 6-10-15 6-2-2c0-3-2-5-5-5z"
+          fill="#d4a830"/>
+    <circle cx="60" cy="35" r="1.5" fill="#2c1810"/>
+    <path d="M60 48v24" stroke="#d4a830" stroke-width="3"/>
+    <path d="M52 70h16" stroke="#d4a830" stroke-width="2"/>
+    <path d="M54 76h12" stroke="#d4a830" stroke-width="1.5"/>
+    <!-- SPQR style -->
+    <text x="60" y="95" text-anchor="middle" font-family="Cinzel,serif" font-weight="800" font-size="9" fill="#d4a830" letter-spacing="2">B · G</text>
+  </symbol>
+</defs>
+</svg>
+
 <!-- LOADING -->
 <div id="loading">
+  <svg style="width:80px;height:80px;margin-bottom:8px;filter:drop-shadow(0 0 12px rgba(212,168,48,.6))" aria-hidden="true"><use href="#crest-bellum"/></svg>
   <h1>BELLUM GALLIAE</h1>
+  <div style="font-family:'IM Fell French Canon',serif;font-style:italic;color:var(--gold);opacity:.8;font-size:.85em;margin-top:-8px;margin-bottom:14px;letter-spacing:2px">La Guerre des Gaules</div>
   <div class="pbar"><div class="pfill" id="pf"></div></div>
-  <div id="load-sub">Connexion...</div>
+  <div id="load-sub">Convocation des bardes...</div>
 </div>
 
 <div id="game" style="width:100%;height:100%;position:relative">
 
 <!-- LOGIN -->
 <div id="s-login" class="scr on">
-  <div class="logo">BELLUM GALLIAE</div>
-  <div class="logo-sub">STRATEGIE MEDIEVALE</div>
-  <button class="bt bt-g" onclick="doLogin('anon')">MODE ANONYME</button>
-  <button class="bt bt-v" onclick="doLogin('email')">CONNEXION EMAIL</button>
-  <div id="login-msg">Alpha v0.1.0</div>
+  <svg class="login-crest" aria-hidden="true"><use href="#crest-bellum"/></svg>
+  <div class="logo">BELLUM<br>GALLIAE</div>
+  <div class="logo-sub">La Guerre des Gaules</div>
+  <div class="crest-row" aria-label="Quatre factions">
+    <svg aria-label="Faction Verte"><use href="#crest-verte"/></svg>
+    <svg aria-label="Faction Rouge"><use href="#crest-rouge"/></svg>
+    <svg aria-label="Faction Orange"><use href="#crest-orange"/></svg>
+    <svg aria-label="Faction Bleue"><use href="#crest-bleue"/></svg>
+  </div>
+  <button class="bt bt-g" onclick="doLogin('anon')">ENTRER EN GAULE</button>
+  <button class="bt bt-v" onclick="doLogin('email')">CONNEXION SEIGNEUR</button>
+  <div id="login-msg">Alpha v0.1.1 — Saison 25</div>
 </div>
 
 <!-- FIEF -->
-<div id="s-fief" class="scr" style="background:linear-gradient(180deg,#0f1a2e,#0a1a30)">
+<div id="s-fief" class="scr">
   <div class="tb"><span class="tt">Mon Fief</span><div class="rs" id="hd-res"></div></div>
   <div class="ct">
     <div class="cd" id="player-card"></div>
@@ -147,51 +667,51 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;font-family:
 </div>
 
 <!-- CARTE -->
-<div id="s-carte" class="scr" style="background:linear-gradient(180deg,#0f1a2e,#0d2b0d)">
-  <div class="tb"><span class="tt">Carte du Monde</span><div class="rs"><span id="hd-troops">Troupes: --</span></div></div>
+<div id="s-carte" class="scr">
+  <div class="tb"><span class="tt">Carte de Gaule</span><div class="rs"><span id="hd-troops"><svg class="rs-ic"><use href="#nav-combat"/></svg>--/--</span></div></div>
   <div class="ct">
     <div class="ma" id="map-area"></div>
-    <div class="cd" style="margin-top:9px" id="map-info"><h3>Explorez la carte</h3><p>Cliquez sur une case pour interagir</p></div>
+    <div class="cd" style="margin-top:10px" id="map-info"><h3>Explorez la Gaule</h3><p>Cliquez sur un nœud pour inspecter ou attaquer.</p></div>
   </div>
   <div class="nv" id="nv-carte"></div>
 </div>
 
 <!-- COMBAT -->
-<div id="s-combat" class="scr" style="background:linear-gradient(180deg,#1e0f0f,#2e1515)">
-  <div class="tb"><span class="tt">Combat</span><div class="rs"><span id="hd-atk">Attaques: --</span></div></div>
+<div id="s-combat" class="scr">
+  <div class="tb"><span class="tt">Champ de Bataille</span><div class="rs"><span id="hd-atk"><svg class="rs-ic"><use href="#nav-combat"/></svg>--/--</span></div></div>
   <div class="ct">
     <div class="cd" id="army-card"></div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button class="bt bt-g" style="flex:1" onclick="doRaid()">LANCER UN RAID</button>
-      <button class="bt bt-v" style="flex:1" onclick="recruitTroops()">RECRUTER (+10)</button>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <button class="bt bt-g" style="flex:1;margin:0" onclick="doRaid()">LANCER UN RAID</button>
+      <button class="bt bt-v" style="flex:1;margin:0" onclick="recruitTroops()">RECRUTER +10</button>
     </div>
-    <div class="cd"><h3>Historique</h3><div id="clog"></div></div>
+    <div class="cd"><h3>Chroniques de guerre</h3><div id="clog"></div></div>
   </div>
   <div class="nv" id="nv-combat"></div>
 </div>
 
 <!-- SOCIAL -->
-<div id="s-social" class="scr" style="background:linear-gradient(180deg,#0f1a2e,#0f2030)">
-  <div class="tb"><span class="tt">Social</span><div class="rs"><span id="hd-clan">Clan: --</span></div></div>
+<div id="s-social" class="scr">
+  <div class="tb"><span class="tt">Clans &amp; Chroniques</span><div class="rs"><span id="hd-clan"><svg class="rs-ic"><use href="#nav-social"/></svg>--</span></div></div>
   <div class="ct">
     <div class="cd" id="clan-card"></div>
-    <div class="cd"><h3>Chat Global</h3><div id="chat-list"></div>
-      <div class="ch-in"><input id="ch-inp" type="text" placeholder="Message..." maxlength="200"><button onclick="sendChat()">OK</button></div>
+    <div class="cd"><h3>Salle de faction</h3><div id="chat-list"></div>
+      <div class="ch-in"><input id="ch-inp" type="text" placeholder="Votre message au clan..." maxlength="200"><button onclick="sendChat()">ENVOYER</button></div>
     </div>
-    <div class="cd"><h3>Classement</h3><div id="leaderboard"></div></div>
-    <div class="cd"><h3>Tresor de Faction</h3><p style="font-size:.78em;color:#888;margin-bottom:6px">Contribuez au tresor commun de votre faction.</p><button class="bt bt-v" style="width:100%;max-width:100%;padding:8px" onclick="contribuerTresor()">CONTRIBUER 200 OR</button></div>
+    <div class="cd"><h3>Classement des Seigneurs</h3><div id="leaderboard"></div></div>
+    <div class="cd"><h3>Trésor de faction</h3><p>Contribuez au trésor commun de votre faction pour financer les guerres.</p><button class="bt bt-v" style="width:100%;max-width:100%;padding:10px;margin-top:8px" onclick="contribuerTresor()">CONTRIBUER 200 OR</button></div>
   </div>
   <div class="nv" id="nv-social"></div>
 </div>
 
 <!-- ECONOMIE -->
-<div id="s-eco" class="scr" style="background:linear-gradient(180deg,#0f1a2e,#1e1e0f)">
-  <div class="tb"><span class="tt">Economie</span><div class="rs"><span id="hd-deniers">Deniers: --</span></div></div>
+<div id="s-eco" class="scr">
+  <div class="tb"><span class="tt">Économie &amp; Marché</span><div class="rs"><span id="hd-deniers"><svg class="rs-ic"><use href="#ic-coin"/></svg>--</span></div></div>
   <div class="ct">
     <div class="cd" id="prod-card"></div>
-    <div class="cd"><h3>Tour de Garde</h3><p style="font-size:.78em;color:#888;margin-bottom:6px">Renforcez la tour pour proteger votre region.</p><button class="bt bt-g" style="width:100%;max-width:100%;padding:8px" onclick="contribuerTour()">RENFORCER (100 Pierre)</button></div>
-    <div class="cd"><h3>Evenements</h3><div id="events-list"><p style="font-size:.78em;color:#555">Chargement...</p></div></div>
-    <div class="cd"><h3>Marche</h3><div id="market"></div></div>
+    <div class="cd"><h3>Tour de garde</h3><p>Renforcez la tour pour protéger votre région des raids.</p><button class="bt bt-g" style="width:100%;max-width:100%;padding:10px;margin-top:8px" onclick="contribuerTour()">RENFORCER (100 PIERRES)</button></div>
+    <div class="cd"><h3>Événements saisonniers</h3><div id="events-list"><p>Chargement des parchemins...</p></div></div>
+    <div class="cd"><h3>Marché</h3><div id="market"></div></div>
     <div class="cd"><h3>Boutique</h3><div id="shop"></div></div>
     <div class="cd" id="chest-card"></div>
   </div>
@@ -239,12 +759,12 @@ const G = {
   region: 'Gaule Lyonnaise',
   clan: null,
   buildings: [
-    {id:'chateau',icon:'🏰',name:'Chateau',lv:1,desc:'Centre du fief. +1 batiment par niveau.',cOr:500,cBo:300,cPi:200,prod:'',pv:0,timer:0},
-    {id:'caserne',icon:'⚔️',name:'Caserne',lv:1,desc:'Recrute des troupes. +5 troupes/h.',cOr:300,cBo:200,cPi:100,prod:'troupes',pv:5,timer:0},
-    {id:'ferme',icon:'🌾',name:'Ferme',lv:1,desc:'Nourriture. +100/h par niveau.',cOr:200,cBo:150,cPi:50,prod:'food',pv:100,timer:0},
-    {id:'mine',icon:'⛏️',name:'Mine',lv:1,desc:'Pierre. +60/h par niveau.',cOr:250,cBo:100,cPi:0,prod:'pierre',pv:60,timer:0},
-    {id:'scierie',icon:'🪓',name:'Scierie',lv:1,desc:'Bois. +80/h par niveau.',cOr:200,cBo:0,cPi:100,prod:'bois',pv:80,timer:0},
-    {id:'tour',icon:'🗼',name:'Tour de garde',lv:1,desc:'Defense. +10% par niveau.',cOr:400,cBo:250,cPi:300,prod:'',pv:0,timer:0},
+    {id:'chateau',icon:'🏰',svgId:'ic-castle',name:'Château',lv:1,desc:'Cœur de votre fief. Débloque un nouveau bâtiment à chaque niveau.',cOr:500,cBo:300,cPi:200,prod:'',pv:0,timer:0},
+    {id:'caserne',icon:'⚔️',svgId:'ic-barracks',name:'Caserne',lv:1,desc:'Entraîne vos légions. +5 troupes/heure par niveau.',cOr:300,cBo:200,cPi:100,prod:'troupes',pv:5,timer:0},
+    {id:'ferme',icon:'🌾',svgId:'ic-farm',name:'Ferme',lv:1,desc:'Nourrit vos hommes. +100 blé/heure par niveau.',cOr:200,cBo:150,cPi:50,prod:'food',pv:100,timer:0},
+    {id:'mine',icon:'⛏️',svgId:'ic-mine',name:'Mine',lv:1,desc:'Extrait la pierre des Alpes. +60/heure par niveau.',cOr:250,cBo:100,cPi:0,prod:'pierre',pv:60,timer:0},
+    {id:'scierie',icon:'🪓',svgId:'ic-sawmill',name:'Scierie',lv:1,desc:'Abat les chênes druidiques. +80 bois/heure par niveau.',cOr:200,cBo:0,cPi:100,prod:'bois',pv:80,timer:0},
+    {id:'tour',icon:'🗼',svgId:'ic-tower',name:'Tour de garde',lv:1,desc:'Défend le fief. +10% défense par niveau.',cOr:400,cBo:250,cPi:300,prod:'',pv:0,timer:0},
   ],
   combatLog: [],
   chatMsgs: [],
@@ -260,7 +780,7 @@ const G = {
 const pf = document.getElementById('pf');
 const ls = document.getElementById('load-sub');
 let lp = 0;
-const lSteps = ['Chargement...','Connexion serveur...','Preparation...','Pret!'];
+const lSteps = ['Convocation des bardes...','Liaison aux oppida...','Préparation des bannières...','Prêt, Seigneur !'];
 const lI = setInterval(() => {
   lp += Math.random()*20+8; if(lp>100) lp=100;
   pf.style.width = lp+'%';
@@ -273,7 +793,13 @@ document.getElementById('vtag').textContent = 'Bellum Galliae Alpha v'+CONFIG.VE
 // ============================================================
 // NAVIGATION
 // ============================================================
-const NAV = [{id:'fief',ic:'🏰',lb:'Fief'},{id:'carte',ic:'🗺️',lb:'Carte'},{id:'combat',ic:'⚔️',lb:'Combat'},{id:'social',ic:'👥',lb:'Social'},{id:'eco',ic:'💰',lb:'Boutique'}];
+const NAV = [
+  {id:'fief', svgId:'nav-fief', lb:'Fief'},
+  {id:'carte', svgId:'nav-map', lb:'Carte'},
+  {id:'combat', svgId:'nav-combat', lb:'Combat'},
+  {id:'social', svgId:'nav-social', lb:'Clan'},
+  {id:'eco', svgId:'nav-shop', lb:'Marché'},
+];
 let curScr='fief';
 function go(id){
   curScr=id;
@@ -282,7 +808,10 @@ function go(id){
   document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
   render();
 }
-function mkNav(cid){const c=document.getElementById(cid);if(!c)return;c.innerHTML=NAV.map(n=>`<button class="nb" data-s="${n.id}" onclick="go('${n.id}')"><i>${n.ic}</i>${n.lb}</button>`).join('');}
+function mkNav(cid){
+  const c=document.getElementById(cid); if(!c)return;
+  c.innerHTML=NAV.map(n=>`<button class="nb" data-s="${n.id}" onclick="go('${n.id}')"><svg aria-hidden="true"><use href="#${n.svgId}"/></svg>${n.lb}</button>`).join('');
+}
 ['nv-fief','nv-carte','nv-combat','nv-social','nv-eco'].forEach(mkNav);
 
 // ============================================================
@@ -452,12 +981,15 @@ async function doLogin(mode) {
 // RENDER
 // ============================================================
 function render() {
-  // Header resources
-  document.getElementById('hd-res').innerHTML = `<span>Or:${G.or}</span><span>Bois:${G.bois}</span><span>Pierre:${G.pierre}</span>`;
-  document.getElementById('hd-troops').textContent = 'Troupes: '+G.troupes+'/'+G.troupes_max;
-  document.getElementById('hd-atk').textContent = 'Attaques: '+G.attacks+'/'+G.maxAtk;
-  document.getElementById('hd-clan').textContent = 'Clan: '+(G.clan||'Aucun');
-  document.getElementById('hd-deniers').textContent = 'Deniers: '+G.deniers;
+  // Header resources (icônes SVG + valeurs)
+  document.getElementById('hd-res').innerHTML =
+    `<span title="Or"><svg class="rs-ic"><use href="#ic-coin"/></svg>${G.or}</span>`+
+    `<span title="Bois"><svg class="rs-ic"><use href="#ic-wood"/></svg>${G.bois}</span>`+
+    `<span title="Pierre"><svg class="rs-ic"><use href="#ic-stone"/></svg>${G.pierre}</span>`;
+  document.getElementById('hd-troops').innerHTML = `<svg class="rs-ic"><use href="#nav-combat"/></svg>${G.troupes}/${G.troupes_max}`;
+  document.getElementById('hd-atk').innerHTML = `<svg class="rs-ic"><use href="#nav-combat"/></svg>${G.attacks}/${G.maxAtk} raids`;
+  document.getElementById('hd-clan').innerHTML = `<svg class="rs-ic"><use href="#nav-social"/></svg>${G.clan||'Solitaire'}`;
+  document.getElementById('hd-deniers').innerHTML = `<svg class="rs-ic"><use href="#ic-coin"/></svg>${G.deniers} deniers`;
 
   renderPlayer();
   renderBuildings();
@@ -473,16 +1005,38 @@ function render() {
   renderChest();
 }
 
+function factionBadge(fid){
+  const names={'10000000-0000-0000-0000-000000000001':'verte','10000000-0000-0000-0000-000000000002':'rouge','10000000-0000-0000-0000-000000000003':'orange','10000000-0000-0000-0000-000000000004':'bleue'};
+  const key=names[fid];
+  return key?`<svg style="width:24px;height:32px;vertical-align:middle;margin-right:6px"><use href="#crest-${key}"/></svg>`:'';
+}
+
 function renderPlayer() {
-  document.getElementById('player-card').innerHTML = `<h3>${G.pseudo}</h3><p>Niveau ${G.niveau} - ${G.region}</p><p style="color:#d4a830;margin-top:3px">XP: ${G.xp} / ${G.niveau*500}</p>` + (G.online?'<p style="color:#2ecc71;font-size:.65em;margin-top:3px">En ligne</p>':'<p style="color:#e74c3c;font-size:.65em;margin-top:3px">Mode demo</p>');
+  const fac=G.faction?factionBadge(G.faction):'';
+  const pct=Math.min(100,(G.xp/(G.niveau*500))*100);
+  const status=G.online
+    ?'<span style="color:#a8c898;font-size:.72em;font-family:IM Fell French Canon,serif">● Connecté au serveur</span>'
+    :'<span style="color:#d47474;font-size:.72em;font-family:IM Fell French Canon,serif">● Mode démonstration</span>';
+  document.getElementById('player-card').innerHTML =
+    `<h3>${fac}Seigneur ${G.pseudo}</h3>`+
+    `<p style="font-family:IM Fell French Canon,serif">Niveau ${G.niveau} &mdash; ${G.region}</p>`+
+    `<div style="margin-top:8px;height:6px;background:rgba(10,6,3,.6);border:1px solid rgba(212,168,48,.3);border-radius:1px;overflow:hidden">`+
+      `<div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-soft));transition:width .4s"></div>`+
+    `</div>`+
+    `<p style="color:var(--gold);font-size:.78em;margin-top:4px;font-family:IM Fell French Canon,serif;font-style:italic">${G.xp} / ${G.niveau*500} XP</p>`+
+    `<p style="margin-top:6px">${status}</p>`;
 }
 
 function renderBuildings() {
   document.getElementById('bld-grid').innerHTML = G.buildings.map((b,i) => {
     let sub = '';
-    if (b.timer > 0) sub = `<div class="bt-sm pulse">Amelioration ${b.timer}s</div>`;
-    else if (b.prod) sub = `<div class="bt-sm" style="color:#888">+${b.pv*b.lv}/h</div>`;
-    return `<div class="bl" onclick="showBld(${i})"><div class="bi">${b.icon}</div><div class="bn">${b.name}</div><div class="bv">Niv. ${b.lv}</div>${sub}</div>`;
+    if (b.timer > 0) sub = `<div class="bt-sm pulse">Construction ${b.timer}s</div>`;
+    else if (b.prod) sub = `<div class="bt-sm">+${b.pv*b.lv}/h</div>`;
+    return `<div class="bl" onclick="showBld(${i})">`+
+      `<div class="bi"><svg aria-hidden="true"><use href="#${b.svgId||'ic-castle'}"/></svg></div>`+
+      `<div class="bn">${b.name}</div>`+
+      `<div class="bv">Niveau ${b.lv}</div>${sub}`+
+    `</div>`;
   }).join('');
 }
 
@@ -494,17 +1048,18 @@ function showBld(i) {
   const cP = Math.floor(b.cPi*Math.pow(m,b.lv-1));
   const ok = G.or>=cO && G.bois>=cB && G.pierre>=cP && b.timer<=0;
   document.getElementById('mo-ct').innerHTML = `
-    <h2>${b.icon} ${b.name}</h2>
-    <p style="color:#888;font-size:.78em;margin-bottom:10px">${b.desc}</p>
-    <div class="mr"><span class="ml">Niveau</span><span class="mv">${b.lv}</span></div>
+    <h2><svg aria-hidden="true"><use href="#${b.svgId||'ic-castle'}"/></svg> ${b.name}</h2>
+    <p style="font-size:.9em;margin-bottom:12px;font-style:italic">${b.desc}</p>
+    <div class="mr"><span class="ml">Niveau actuel</span><span class="mv">${b.lv}</span></div>
     ${b.prod?`<div class="mr"><span class="ml">Production</span><span class="mv">+${b.pv*b.lv}/h</span></div>`:''}
-    <div class="mr"><span class="ml">Prochain niv.</span><span class="mv">${b.lv+1}</span></div>
-    <div class="mc"><p style="color:#777;margin-bottom:4px">Cout:</p>
-      ${cO?`<span class="co ${G.or>=cO?'ok':''}">Or:${cO} </span>`:''}
-      ${cB?`<span class="co ${G.bois>=cB?'ok':''}">Bois:${cB} </span>`:''}
-      ${cP?`<span class="co ${G.pierre>=cP?'ok':''}">Pierre:${cP}</span>`:''}
+    <div class="mr"><span class="ml">Prochain niveau</span><span class="mv">${b.lv+1}</span></div>
+    <div class="mc">
+      <p style="color:#a88450;margin-bottom:6px;font-family:Cinzel,serif;letter-spacing:1px;font-size:.85em">COÛT D'AMÉLIORATION</p>
+      ${cO?`<span class="co ${G.or>=cO?'ok':''}"><svg style="width:12px;height:12px;vertical-align:-2px;fill:currentColor"><use href="#ic-coin"/></svg> ${cO}</span>`:''}
+      ${cB?`<span class="co ${G.bois>=cB?'ok':''}"><svg style="width:12px;height:12px;vertical-align:-2px;fill:currentColor"><use href="#ic-wood"/></svg> ${cB}</span>`:''}
+      ${cP?`<span class="co ${G.pierre>=cP?'ok':''}"><svg style="width:12px;height:12px;vertical-align:-2px;fill:currentColor"><use href="#ic-stone"/></svg> ${cP}</span>`:''}
     </div>
-    <button class="mb mb-up" ${ok?'':`disabled`} onclick="upgBld(${i})">${b.timer>0?'EN COURS':ok?'AMELIORER':'INSUFFISANT'}</button>
+    <button class="mb mb-up" ${ok?'':`disabled`} onclick="upgBld(${i})">${b.timer>0?'EN COURS...':ok?'AMÉLIORER':'RESSOURCES INSUFFISANTES'}</button>
     <button class="mb mb-cl" onclick="closeMo()">FERMER</button>`;
   document.getElementById('mo-bg').classList.add('on');
 }
@@ -595,16 +1150,22 @@ async function loadNodes(){
   if(error){ console.warn('loadNodes:',error.message); return; }
   G.nodes=data||[];
 }
+// Contour stylisé de la Gaule (hexagone schématique, viewBox 720x1280)
+const FRANCE_CONTOUR_PATH='M 360 80 L 500 150 L 620 280 L 650 480 L 600 700 L 640 900 L 560 1080 L 420 1180 L 280 1180 L 160 1080 L 100 900 L 130 700 L 90 500 L 140 300 L 260 160 Z';
 function renderMap(){
   const area=document.getElementById('map-area'); if(!area)return;
-  if(!G.nodes.length){ area.innerHTML='<p style="color:#777;text-align:center;padding:30px;font-size:.8em">Chargement de la carte...</p>'; return; }
-  area.innerHTML=G.nodes.map((n,i)=>{
+  if(!G.nodes.length){ area.innerHTML='<p style="color:#c9b28a;text-align:center;padding:30px;font-size:.85em;font-family:\'IM Fell French Canon\',serif;font-style:italic">Déploiement de la carte de Gaule...</p>'; return; }
+  const contourSvg=`<svg class="ma-svg" viewBox="0 0 720 1280" preserveAspectRatio="none" aria-hidden="true"><path class="france-contour" d="${FRANCE_CONTOUR_PATH}"/></svg>`;
+  const nodesHtml=G.nodes.map((n,i)=>{
     const lx=(n.pos_x/720*100).toFixed(1), ly=(n.pos_y/1280*100).toFixed(1);
-    const ic=n.type_noeud==='capitale'?'🏰':'🛖';
-    const col=FACTION_COLORS[n.faction_proprietaire_id]||'#777';
-    const mine=(n.id===G.noeud)?'mine':'';
-    return `<div class="mc2 ${mine}" style="left:${lx}%;top:${ly}%;border-color:${col};color:${col}" title="${n.nom_historique} (${n.ville_moderne})" onclick="tapMap(${i})">${ic}</div>`;
+    const sym=n.type_noeud==='capitale'?'node-capital':'node-village';
+    const col=FACTION_COLORS[n.faction_proprietaire_id]||'#8a7a5a';
+    const cls=['mc2'];
+    if(n.id===G.noeud) cls.push('mine');
+    if(n.type_noeud==='capitale') cls.push('capital');
+    return `<div class="${cls.join(' ')}" style="left:${lx}%;top:${ly}%;border-color:${col};color:${col}" title="${n.nom_historique} (${n.ville_moderne})" onclick="tapMap(${i})"><svg aria-hidden="true"><use href="#${sym}"/></svg></div>`;
   }).join('');
+  area.innerHTML=contourSvg+nodesHtml;
 }
 function tapMap(i){
   const n=G.nodes[i]; if(!n)return;
@@ -635,7 +1196,15 @@ async function collectRes(){
 // ARMY & COMBAT
 function renderArmy(){
   const leg=Math.floor(G.troupes*.6), arc=Math.floor(G.troupes*.3), cav=G.troupes-leg-arc;
-  document.getElementById('army-card').innerHTML=`<h3>Mon armee</h3><p>Legionnaires: ${leg} | Archers: ${arc} | Cavaliers: ${cav}</p><p style="color:#d4a830;font-weight:700;margin-top:4px;font-size:1em">Puissance: ${G.troupes*9}</p>`;
+  const pw=G.troupes*9;
+  document.getElementById('army-card').innerHTML=
+    `<h3>Mon ost</h3>`+
+    `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 6px">`+
+      `<div style="text-align:center;padding:8px 4px;background:rgba(212,168,48,.06);border:1px solid rgba(212,168,48,.2);border-radius:2px"><div style="font-family:'Cinzel',serif;font-size:.72em;color:#c9b28a;letter-spacing:1px;text-transform:uppercase">Légion</div><div style="font-size:1.3em;color:var(--gold);font-weight:700">${leg}</div></div>`+
+      `<div style="text-align:center;padding:8px 4px;background:rgba(212,168,48,.06);border:1px solid rgba(212,168,48,.2);border-radius:2px"><div style="font-family:'Cinzel',serif;font-size:.72em;color:#c9b28a;letter-spacing:1px;text-transform:uppercase">Archers</div><div style="font-size:1.3em;color:var(--gold);font-weight:700">${arc}</div></div>`+
+      `<div style="text-align:center;padding:8px 4px;background:rgba(212,168,48,.06);border:1px solid rgba(212,168,48,.2);border-radius:2px"><div style="font-family:'Cinzel',serif;font-size:.72em;color:#c9b28a;letter-spacing:1px;text-transform:uppercase">Cavalerie</div><div style="font-size:1.3em;color:var(--gold);font-weight:700">${cav}</div></div>`+
+    `</div>`+
+    `<p style="text-align:center;margin-top:6px;font-family:'Cinzel',serif;letter-spacing:2px;color:var(--gold);font-weight:700;font-size:.95em">⚜ Puissance ${pw} ⚜</p>`;
 }
 async function doRaid(){
   if(G.attacks<=0){toast('Plus d\'attaques!','bad');return;}
@@ -646,21 +1215,25 @@ async function doRaid(){
     const r=await callFn('resolve_combat',{cible_id:'bot_'+Math.floor(Math.random()*100),type_cible:'bot'});
     if(r){
       const win=r.vainqueur===userId;
-      G.combatLog.unshift({w:win,t:win?`Victoire! +${r.pillage?.or||0} or`:'Defaite... -'+((r.pertes_attaquant)||0)+' troupes'});
+      G.combatLog.unshift({w:win,t:win?`Victoire ! +${r.pillage?.or||0} deniers`:'Défaite — '+((r.pertes_attaquant)||0)+' hommes tombés'});
       if(win && r.pillage) G.or+=(r.pillage.or||0);
-      toast(win?'Victoire!':'Defaite...', win?'':'bad');
+      toast(win?'Victoire !':'Défaite...', win?'':'bad');
     }
   } else {
     // Mode offline
     const win=Math.random()>.3;
     const rw=Math.floor(Math.random()*200+50);
-    if(win){G.or+=rw;G.combatLog.unshift({w:true,t:`Victoire! +${rw} or`});toast('Victoire! +'+rw+' or');}
-    else{const loss=Math.floor(Math.random()*10+5);G.troupes=Math.max(0,G.troupes-loss);G.combatLog.unshift({w:false,t:`Defaite -${loss} troupes`});toast('Defaite...','bad');}
+    if(win){G.or+=rw;G.combatLog.unshift({w:true,t:`Victoire ! +${rw} deniers`});toast('Victoire ! +'+rw+' deniers');}
+    else{const loss=Math.floor(Math.random()*10+5);G.troupes=Math.max(0,G.troupes-loss);G.combatLog.unshift({w:false,t:`Défaite — ${loss} hommes tombés`});toast('Défaite...','bad');}
   }
   if(G.combatLog.length>10)G.combatLog.pop();
   render();
 }
-function renderCombatLog(){document.getElementById('clog').innerHTML=G.combatLog.length?G.combatLog.map(e=>`<div class="cl-e ${e.w?'cl-w':'cl-l'}">${e.t}</div>`).join(''):'<p style="font-size:.78em;color:#555">Aucun combat</p>';}
+function renderCombatLog(){
+  const el=document.getElementById('clog'); if(!el)return;
+  if(!G.combatLog.length){el.innerHTML='<p style="font-size:.8em;color:#8a7a5a;font-style:italic;font-family:\'IM Fell French Canon\',serif;text-align:center;padding:8px">Aucune chronique de bataille…</p>';return;}
+  el.innerHTML=G.combatLog.map(e=>`<div class="cl-e ${e.w?'cl-w':'cl-l'}">${e.w?'⚔ ':'✝ '}${e.t}</div>`).join('');
+}
 
 // RECRUTEMENT
 async function recruitTroops(){
@@ -685,8 +1258,13 @@ async function loadEvents(){
 function renderEvents(){
   const el=document.getElementById('events-list');
   if(!el)return;
-  if(!G.events||!G.events.length){el.innerHTML='<p style="font-size:.78em;color:#555">Aucun evenement en cours</p>';return;}
-  el.innerHTML=G.events.map(e=>`<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><p style="color:#d4a830;font-size:.82em">${e.nom||e.type}</p><p style="font-size:.7em;color:#888">${e.description||''}</p></div>`).join('');
+  if(!G.events||!G.events.length){el.innerHTML='<p style="font-size:.78em;color:#8a7a5a;font-style:italic;font-family:\'IM Fell French Canon\',serif;text-align:center;padding:8px">Aucun héraut n\'annonce d\'événement…</p>';return;}
+  el.innerHTML=G.events.map(e=>
+    `<div style="padding:8px 10px;margin-bottom:6px;background:rgba(212,168,48,.05);border-left:3px solid var(--gold);border-radius:1px">`+
+      `<p style="color:var(--gold);font-family:'Cinzel',serif;font-size:.82em;letter-spacing:1px">✦ ${e.nom||e.type}</p>`+
+      `<p style="font-size:.78em;color:#c9b28a;font-family:'IM Fell French Canon',serif;margin-top:2px">${e.description||''}</p>`+
+    `</div>`
+  ).join('');
 }
 
 // TOUR DE GARDE
@@ -714,8 +1292,13 @@ async function contribuerTresor(){
 // CLAN
 function renderClan(){
   document.getElementById('clan-card').innerHTML=G.clan?
-    `<h3>Mon Clan</h3><p>ID: ${G.clan}</p><button class="bt bt-v" style="width:100%;max-width:100%;padding:8px;margin-top:8px" onclick="leaveClan()">QUITTER</button>`:
-    `<h3>Rejoindre un clan</h3><p>Participez aux guerres et partagez les ressources.</p><button class="bt bt-v" style="width:100%;max-width:100%;padding:8px;margin-top:8px" onclick="joinClan()">CHERCHER</button>`;
+    `<h3>Ma Mesnie</h3>`+
+    `<p style="font-family:'IM Fell French Canon',serif;color:#e8d5a8"><span style="color:var(--gold)">⚔</span> Fidèle de <strong style="color:var(--gold);letter-spacing:1px">${G.clan}</strong></p>`+
+    `<button class="bt bt-v" style="width:100%;max-width:100%;padding:8px;margin-top:8px" onclick="leaveClan()">QUITTER LA MESNIE</button>`
+    :
+    `<h3>Rallier une mesnie</h3>`+
+    `<p style="font-family:'IM Fell French Canon',serif;color:#c9b28a;font-style:italic">Ralliez-vous à une bannière pour partager ressources et conquêtes.</p>`+
+    `<button class="bt bt-v" style="width:100%;max-width:100%;padding:8px;margin-top:8px" onclick="joinClan()">CHERCHER UNE BANNIÈRE</button>`;
 }
 async function joinClan(){
   if(!OFFLINE&&session){const r=await callFn('gestion_clans',{action:'rejoindre',clan_id:'clan_alpha'});if(r&&r.succes){G.clan='clan_alpha';toast('Clan rejoint!');render();return;}}
@@ -728,7 +1311,11 @@ async function leaveClan(){
 
 // CHAT
 function renderChat(){
-  document.getElementById('chat-list').innerHTML=G.chatMsgs.length?G.chatMsgs.slice(-8).map(m=>`<div class="ch-m"><span class="ch-s">[${m.s}]</span> <span class="ch-t">${m.t}</span></div>`).join(''):'<p style="font-size:.75em;color:#555">Aucun message</p>';
+  const el=document.getElementById('chat-list'); if(!el)return;
+  if(!G.chatMsgs.length){el.innerHTML='<p style="font-size:.78em;color:#8a7a5a;font-style:italic;font-family:\'IM Fell French Canon\',serif;text-align:center;padding:6px">Aucun message n\'est encore parvenu au camp…</p>';return;}
+  el.innerHTML=G.chatMsgs.slice(-8).map(m=>
+    `<div class="ch-m"><span class="ch-s">❦ ${m.s}</span> <span class="ch-t" style="color:#e8d5a8">${m.t}</span></div>`
+  ).join('');
 }
 async function sendChat(){
   const inp=document.getElementById('ch-inp');
@@ -774,20 +1361,51 @@ async function renderLeaderboard(){
 
 // ECONOMIE
 function renderProd(){
-  const oH=120+G.buildings.find(b=>b.id==='mine')?.lv*0||0;
-  document.getElementById('prod-card').innerHTML=`<h3>Production / heure</h3><p>Or: +${oH} | Bois: +${G.buildings.find(b=>b.id==='scierie').pv*G.buildings.find(b=>b.id==='scierie').lv} | Pierre: +${G.buildings.find(b=>b.id==='mine').pv*G.buildings.find(b=>b.id==='mine').lv} | Food: +${G.buildings.find(b=>b.id==='ferme').pv*G.buildings.find(b=>b.id==='ferme').lv}</p>`;
+  const oH=120+(G.buildings.find(b=>b.id==='mine')?.lv||0)*0;
+  const bH=G.buildings.find(b=>b.id==='scierie').pv*G.buildings.find(b=>b.id==='scierie').lv;
+  const pH=G.buildings.find(b=>b.id==='mine').pv*G.buildings.find(b=>b.id==='mine').lv;
+  const fH=G.buildings.find(b=>b.id==='ferme').pv*G.buildings.find(b=>b.id==='ferme').lv;
+  document.getElementById('prod-card').innerHTML=
+    `<h3>Production horaire</h3>`+
+    `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px">`+
+      `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(212,168,48,.06);border-left:2px solid var(--gold)"><svg style="width:16px;height:16px;fill:var(--gold)"><use href="#ic-coin"/></svg><span style="color:#e8d5a8">+${oH} <span style="font-size:.75em;color:#c9b28a">deniers</span></span></div>`+
+      `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(212,168,48,.06);border-left:2px solid var(--gold)"><svg style="width:16px;height:16px;fill:var(--gold)"><use href="#ic-wood"/></svg><span style="color:#e8d5a8">+${bH} <span style="font-size:.75em;color:#c9b28a">bois</span></span></div>`+
+      `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(212,168,48,.06);border-left:2px solid var(--gold)"><svg style="width:16px;height:16px;fill:var(--gold)"><use href="#ic-stone"/></svg><span style="color:#e8d5a8">+${pH} <span style="font-size:.75em;color:#c9b28a">pierre</span></span></div>`+
+      `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(212,168,48,.06);border-left:2px solid var(--gold)"><svg style="width:16px;height:16px;fill:var(--gold)"><use href="#ic-wheat"/></svg><span style="color:#e8d5a8">+${fH} <span style="font-size:.75em;color:#c9b28a">blé</span></span></div>`+
+    `</div>`;
 }
 function renderMarket(){
   const items=[
-    {n:'500 Bois',c:'200 or',fn:()=>{if(G.or>=200){G.or-=200;G.bois+=500;toast('+500 bois');render();}else toast('Pas assez','bad');}},
-    {n:'300 Pierre',c:'150 or',fn:()=>{if(G.or>=150){G.or-=150;G.pierre+=300;toast('+300 pierre');render();}else toast('Pas assez','bad');}},
-    {n:'200 Or',c:'400 bois',fn:()=>{if(G.bois>=400){G.bois-=400;G.or+=200;toast('+200 or');render();}else toast('Pas assez','bad');}},
+    {n:'500 Bois',iIn:'ic-wood',c:'200',cIc:'ic-coin',fn:()=>{if(G.or>=200){G.or-=200;G.bois+=500;toast('+500 bois');render();syncResources();}else toast('Pas assez d\'or','bad');}},
+    {n:'300 Pierre',iIn:'ic-stone',c:'150',cIc:'ic-coin',fn:()=>{if(G.or>=150){G.or-=150;G.pierre+=300;toast('+300 pierre');render();syncResources();}else toast('Pas assez d\'or','bad');}},
+    {n:'200 Or',iIn:'ic-coin',c:'400',cIc:'ic-wood',fn:()=>{if(G.bois>=400){G.bois-=400;G.or+=200;toast('+200 deniers');render();syncResources();}else toast('Pas assez de bois','bad');}},
   ];
   window._mkt=items;
-  document.getElementById('market').innerHTML=items.map((it,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><div><p style="color:#eee;font-size:.82em">${it.n}</p><p style="font-size:.7em">${it.c}</p></div><button style="padding:5px 12px;border-radius:6px;background:#d4a830;color:#0a0a1a;border:none;font-weight:700;font-size:.75em;cursor:pointer" onclick="window._mkt[${i}].fn()">ACHETER</button></div>`).join('');
+  document.getElementById('market').innerHTML=items.map((it,i)=>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-bottom:1px dotted rgba(212,168,48,.15)">`+
+      `<div style="display:flex;align-items:center;gap:8px">`+
+        `<svg style="width:22px;height:22px;fill:var(--gold)"><use href="#${it.iIn}"/></svg>`+
+        `<div>`+
+          `<p style="color:var(--parchment);font-family:'Cinzel',serif;font-size:.9em;letter-spacing:1px">${it.n}</p>`+
+          `<p style="font-size:.75em;color:#c9b28a;display:flex;align-items:center;gap:4px"><svg style="width:10px;height:10px;fill:var(--gold)"><use href="#${it.cIc}"/></svg>${it.c}</p>`+
+        `</div>`+
+      `</div>`+
+      `<button class="bt bt-g" style="width:auto;padding:6px 14px;min-width:0;margin:0;font-size:.75em" onclick="window._mkt[${i}].fn()">TROQUER</button>`+
+    `</div>`
+  ).join('');
 }
 function renderShop(){
-  document.getElementById('shop').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><p style="color:#eee;font-size:.82em">Pack Debutant</p><p>500 or + 200 bois</p></div><button class="bt bt-g" style="width:auto;padding:6px 14px;min-width:0;margin:0;font-size:.78em" onclick="buyPack()">${G.packBought?'DEJA PRIS':'GRATUIT'}</button></div>`;
+  document.getElementById('shop').innerHTML=
+    `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">`+
+      `<div style="flex:1">`+
+        `<p style="color:var(--parchment);font-family:'Cinzel',serif;font-size:.9em;letter-spacing:1px">Aumône du Seigneur</p>`+
+        `<p style="font-size:.75em;color:#c9b28a;display:flex;align-items:center;gap:8px;margin-top:3px">`+
+          `<span style="display:inline-flex;align-items:center;gap:3px"><svg style="width:12px;height:12px;fill:var(--gold)"><use href="#ic-coin"/></svg>500</span>`+
+          `<span style="display:inline-flex;align-items:center;gap:3px"><svg style="width:12px;height:12px;fill:var(--gold)"><use href="#ic-wood"/></svg>200</span>`+
+        `</p>`+
+      `</div>`+
+      `<button class="bt bt-g" style="width:auto;padding:6px 14px;min-width:0;margin:0;font-size:.75em" onclick="buyPack()">${G.packBought?'RECUEILLIE':'RECEVOIR'}</button>`+
+    `</div>`;
 }
 async function buyPack(){
   if(G.packBought){toast('Deja reclame!','bad');return;}
@@ -800,7 +1418,20 @@ async function buyPack(){
   render();
 }
 function renderChest(){
-  document.getElementById('chest-card').innerHTML=`<h3>Coffre du jour</h3><div style="text-align:center;padding:8px"><div style="font-size:2.5em">${G.chestOpened?'📭':'🎁'}</div><button class="bt bt-g" style="padding:8px;margin-top:6px" onclick="openChest()">${G.chestOpened?'DEJA OUVERT':'OUVRIR'}</button></div>`;
+  const open=G.chestOpened;
+  document.getElementById('chest-card').innerHTML=
+    `<h3>Coffre du Seigneur</h3>`+
+    `<div style="text-align:center;padding:10px 8px 6px">`+
+      `<svg viewBox="0 0 64 64" style="width:56px;height:56px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))">`+
+        `<rect x="10" y="24" width="44" height="30" fill="${open?'#5a4020':'#8b5a2b'}" stroke="#d4a830" stroke-width="2" rx="2"/>`+
+        `<path d="M10 24 Q32 10 54 24 L54 30 Q32 18 10 30 Z" fill="${open?'#3d2818':'#6b4520'}" stroke="#d4a830" stroke-width="2"/>`+
+        `<rect x="28" y="30" width="8" height="14" fill="#d4a830" stroke="#8b6f1f" stroke-width="1"/>`+
+        `<circle cx="32" cy="37" r="1.5" fill="#2c1810"/>`+
+        `${open?'':'<path d="M20 44 L44 44" stroke="#f0d060" stroke-width="1.5" opacity=".6" stroke-dasharray="2,2"/>'}`+
+      `</svg>`+
+      `<p style="font-family:'IM Fell French Canon',serif;font-style:italic;color:#c9b28a;font-size:.78em;margin-top:4px">${open?'Vidé jusqu\'à l\'aube':'Scellé par le Conseil'}</p>`+
+      `<button class="bt bt-g" style="padding:7px 20px;margin-top:8px;width:auto;min-width:0" onclick="openChest()">${open?'REVENIR DEMAIN':'OUVRIR LE COFFRE'}</button>`+
+    `</div>`;
 }
 async function openChest(){
   if(G.chestOpened){toast('Deja ouvert!','bad');return;}
