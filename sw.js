@@ -1,6 +1,6 @@
-// Bellum Galliae — Service Worker v3 (P1-B/C/D deploy)
+// Bellum Galliae — Service Worker v4 (MJ assets base64 embeds) (P1-B/C/D deploy)
 // Strategie : Cache-first pour les assets statiques, Network-first pour les API
-const CACHE = 'bellum-v3';
+const CACHE = 'bellum-v4';
 const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
@@ -52,4 +52,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return r;
-      }).catch(() => new Response('Offline', { status: 503 }))
+      }).catch(() => new Response('Offline', { status: 503 }));
+    })
+  );
+});
